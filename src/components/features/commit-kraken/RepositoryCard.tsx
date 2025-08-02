@@ -12,8 +12,8 @@ export function RepositoryCard() {
         <CardDescription>Your connected repository</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-3 bg-secondary p-3 rounded-md">
-            <div className="font-mono text-sm font-semibold text-secondary-foreground">
+        <div className="flex items-center gap-3 bg-muted p-3 rounded-md border">
+            <div className="font-mono text-sm font-semibold text-muted-foreground">
                 your-org/commit-kraken-project
             </div>
         </div>

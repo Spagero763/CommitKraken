@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { Header } from '@/components/features/commit-kraken/Header';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
@@ -14,6 +16,8 @@ import {
 } from '@/components/features/commit-kraken/UpcomingCommitsTable';
 import { CommitActivityChart } from '@/components/features/commit-kraken/CommitActivityChart';
 import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
+import Loading from './loading';
+
 
 const initialCommits: ScheduledCommit[] = [
   {
@@ -46,6 +50,18 @@ export default function Home() {
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
   const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
   const [commitStreak, setCommitStreak] = useState(15);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
     const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
@@ -60,9 +76,13 @@ export default function Home() {
     setAnsweredCorrectly(count => count + 1);
   }
 
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <Header user={user} />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

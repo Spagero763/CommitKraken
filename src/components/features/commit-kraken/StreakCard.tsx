@@ -12,8 +12,8 @@ export function StreakCard() {
         <CardDescription>Keep the fire burning!</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-3">
-            <span className="font-bold text-4xl font-headline text-orange-500">15</span>
+        <div className="flex items-baseline justify-center gap-2">
+            <span className="font-bold text-6xl font-headline text-orange-500">15</span>
             <span className="text-xl text-muted-foreground">Days</span>
         </div>
       </CardContent>

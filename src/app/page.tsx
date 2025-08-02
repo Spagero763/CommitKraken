@@ -7,6 +7,7 @@ import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
 import { RepositoryCard } from '@/components/features/commit-kraken/RepositoryCard';
 import { AiCommitGenerator } from '@/components/features/commit-kraken/AiCommitGenerator';
 import { SchedulerCard } from '@/components/features/commit-kraken/SchedulerCard';
+import { CommitChallengeCard } from '@/components/features/commit-kraken/CommitChallengeCard';
 import {
   UpcomingCommitsTable,
   type ScheduledCommit,
@@ -41,6 +42,7 @@ const initialCommits: ScheduledCommit[] = [
 
 export default function Home() {
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
+  const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
 
   const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
     const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
@@ -50,6 +52,10 @@ export default function Home() {
       )
     );
   };
+  
+  const handleCorrectAnswer = () => {
+    setAnsweredCorrectly(count => count + 1);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -57,9 +63,12 @@ export default function Home() {
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ProgressCard />
+            <ProgressCard commitsMade={answeredCorrectly} />
             <StreakCard />
             <RepositoryCard />
+            <div className="lg:col-span-3">
+              <CommitChallengeCard onCorrectAnswer={handleCorrectAnswer} />
+            </div>
             <div className="lg:col-span-2">
               <AiCommitGenerator />
             </div>

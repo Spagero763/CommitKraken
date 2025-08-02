@@ -2,8 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Target } from 'lucide-react';
 
-export function ProgressCard() {
-  const commitsMade = 128;
+type ProgressCardProps = {
+  commitsMade?: number;
+}
+
+export function ProgressCard({ commitsMade = 0 }: ProgressCardProps) {
   const goalCommits = 500;
   const progress = (commitsMade / goalCommits) * 100;
 

@@ -4,7 +4,7 @@ import { Target } from 'lucide-react';
 
 export function ProgressCard() {
   const commitsMade = 128;
-  const goalCommits = 500;
+  const goalCommits = 1500;
   const progress = (commitsMade / goalCommits) * 100;
 
   return (

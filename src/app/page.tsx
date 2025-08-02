@@ -13,6 +13,7 @@ import {
   type ScheduledCommit,
 } from '@/components/features/commit-kraken/UpcomingCommitsTable';
 import { CommitActivityChart } from '@/components/features/commit-kraken/CommitActivityChart';
+import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
 
 const initialCommits: ScheduledCommit[] = [
   {
@@ -76,16 +77,19 @@ export default function Home() {
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '400ms'}}>
               <CommitActivityChart />
             </div>
-            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '500ms'}}>
+            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+              <AchievementsCard />
+            </div>
+            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '600ms'}}>
               <CommitChallengeCard onCorrectAnswer={handleCorrectAnswer} />
             </div>
-            <div className="md:col-span-2 lg:col-span-2 animate-fade-in-up" style={{animationDelay: '600ms'}}>
+            <div className="md:col-span-2 lg:col-span-2 animate-fade-in-up" style={{animationDelay: '700ms'}}>
               <AiCommitGenerator />
             </div>
-            <div className="lg:col-span-1 animate-fade-in-up" style={{animationDelay: '700ms'}}>
+            <div className="lg:col-span-1 animate-fade-in-up" style={{animationDelay: '800ms'}}>
               <SchedulerCard onScheduleCommit={addCommit} />
             </div>
-            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '800ms'}}>
+            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '900ms'}}>
               <UpcomingCommitsTable scheduledCommits={scheduledCommits} />
             </div>
           </div>

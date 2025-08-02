@@ -45,6 +45,7 @@ const initialCommits: ScheduledCommit[] = [
 export default function Home() {
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
   const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
+  const [commitStreak, setCommitStreak] = useState(15);
 
   const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
     const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
@@ -69,7 +70,7 @@ export default function Home() {
               <ProgressCard commitsMade={answeredCorrectly} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '200ms'}}>
-              <StreakCard />
+              <StreakCard streak={commitStreak} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '300ms'}}>
               <RepositoryCard />
@@ -78,7 +79,7 @@ export default function Home() {
               <CommitActivityChart />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-              <AchievementsCard />
+              <AchievementsCard commitsMade={answeredCorrectly} streak={commitStreak} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '600ms'}}>
               <CommitChallengeCard onCorrectAnswer={handleCorrectAnswer} />

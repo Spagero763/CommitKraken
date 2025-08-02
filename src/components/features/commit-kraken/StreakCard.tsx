@@ -1,7 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Flame } from 'lucide-react';
 
-export function StreakCard() {
+type StreakCardProps = {
+  streak: number;
+}
+
+export function StreakCard({ streak }: StreakCardProps) {
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -13,7 +17,7 @@ export function StreakCard() {
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline justify-center gap-2">
-            <span className="font-bold text-6xl font-headline text-orange-500">15</span>
+            <span className="font-bold text-6xl font-headline text-orange-500">{streak}</span>
             <span className="text-xl text-muted-foreground">Days</span>
         </div>
       </CardContent>

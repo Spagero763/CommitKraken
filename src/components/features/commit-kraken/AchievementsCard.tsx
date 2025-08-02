@@ -10,34 +10,40 @@ import {
 import { Award, BadgeCheck, Medal, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const achievements = [
-  {
-    icon: <Trophy className="h-8 w-8 text-yellow-400" />,
-    title: 'Streak Starter',
-    description: 'Achieve a 5-day commit streak.',
-    unlocked: true,
-  },
-  {
-    icon: <Medal className="h-8 w-8 text-orange-400" />,
-    title: 'Streak Pro',
-    description: 'Achieve a 10-day commit streak.',
-    unlocked: true,
-  },
-  {
-    icon: <Award className="h-8 w-8 text-indigo-400" />,
-    title: 'Commit Centurion',
-    description: 'Make 100 commits.',
-    unlocked: false,
-  },
-  {
-    icon: <BadgeCheck className="h-8 w-8 text-green-400" />,
-    title: 'Challenge Champion',
-    description: 'Answer 10 challenge questions correctly.',
-    unlocked: false,
-  },
-];
+type AchievementsCardProps = {
+  commitsMade: number;
+  streak: number;
+};
 
-export function AchievementsCard() {
+export function AchievementsCard({ commitsMade, streak }: AchievementsCardProps) {
+
+  const achievements = [
+    {
+      icon: <Trophy className="h-8 w-8 text-yellow-400" />,
+      title: 'Streak Starter',
+      description: 'Achieve a 5-day commit streak.',
+      unlocked: streak >= 5,
+    },
+    {
+      icon: <Medal className="h-8 w-8 text-orange-400" />,
+      title: 'Streak Pro',
+      description: 'Achieve a 10-day commit streak.',
+      unlocked: streak >= 10,
+    },
+    {
+      icon: <Award className="h-8 w-8 text-indigo-400" />,
+      title: 'Commit Centurion',
+      description: 'Make 100 commits.',
+      unlocked: commitsMade >= 100,
+    },
+    {
+      icon: <BadgeCheck className="h-8 w-8 text-green-400" />,
+      title: 'Challenge Champion',
+      description: 'Answer 10 challenge questions correctly.',
+      unlocked: commitsMade >= 10,
+    },
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -55,14 +61,13 @@ export function AchievementsCard() {
             <div
               key={index}
               className={cn(
-                'flex items-center gap-4 rounded-lg border p-4 transition-opacity',
-                !achievement.unlocked && 'opacity-50'
+                'flex items-center gap-4 rounded-lg border p-4 transition-all duration-500',
+                !achievement.unlocked && 'opacity-50 grayscale'
               )}
             >
               <div
                 className={cn(
                   'flex-shrink-0',
-                  !achievement.unlocked && 'grayscale'
                 )}
               >
                 {achievement.icon}

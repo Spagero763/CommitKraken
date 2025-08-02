@@ -91,7 +91,10 @@ export function SchedulerCard({ onScheduleCommit }: SchedulerCardProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>
-            <CardTitle>Schedule a Commit</CardTitle>
+            <div className="flex items-center gap-3">
+              <CalendarPlus className="h-6 w-6 text-primary" />
+              <CardTitle>Schedule a Commit</CardTitle>
+            </div>
             <CardDescription>Plan your commits in advance.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

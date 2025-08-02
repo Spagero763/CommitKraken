@@ -88,7 +88,7 @@ export function UpcomingCommitsTable({ scheduledCommits }: UpcomingCommitsTableP
                 </TableRow>
                 ))}
             </TableBody>
-            </Table>>
+            </Table>
         </div>
       </CardContent>
     </Card>

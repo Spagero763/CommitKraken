@@ -1,12 +1,56 @@
+'use client';
+
+import { useState } from 'react';
 import { Header } from '@/components/features/commit-kraken/Header';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
 import { RepositoryCard } from '@/components/features/commit-kraken/RepositoryCard';
 import { AiCommitGenerator } from '@/components/features/commit-kraken/AiCommitGenerator';
 import { SchedulerCard } from '@/components/features/commit-kraken/SchedulerCard';
-import { UpcomingCommitsTable } from '@/components/features/commit-kraken/UpcomingCommitsTable';
+import {
+  UpcomingCommitsTable,
+  type ScheduledCommit,
+} from '@/components/features/commit-kraken/UpcomingCommitsTable';
+
+const initialCommits: ScheduledCommit[] = [
+  {
+    message: 'refactor: Update styling components',
+    date: '2024-08-15',
+    time: '10:00 AM',
+    status: 'Scheduled',
+  },
+  {
+    message: 'docs: Add documentation for scheduler',
+    date: '2024-08-15',
+    time: '02:30 PM',
+    status: 'Scheduled',
+  },
+  {
+    message: 'fix: Resolve issue with AI message generation',
+    date: '2024-08-16',
+    time: '11:00 AM',
+    status: 'Scheduled',
+  },
+  {
+    message: 'feat: Initial dashboard setup',
+    date: '2024-08-14',
+    time: '04:00 PM',
+    status: 'Done',
+  },
+];
 
 export default function Home() {
+  const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
+
+  const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
+    const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
+    setScheduledCommits((prevCommits) =>
+      [...prevCommits, newCommit].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      )
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -19,9 +63,9 @@ export default function Home() {
             <div className="lg:col-span-2">
               <AiCommitGenerator />
             </div>
-            <SchedulerCard />
+            <SchedulerCard onScheduleCommit={addCommit} />
             <div className="lg:col-span-3">
-              <UpcomingCommitsTable />
+              <UpcomingCommitsTable scheduledCommits={scheduledCommits} />
             </div>
           </div>
         </div>

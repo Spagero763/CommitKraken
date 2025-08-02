@@ -23,34 +23,18 @@ import {
 import { MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const scheduledCommits = [
-    {
-      message: 'refactor: Update styling components',
-      date: '2024-08-15',
-      time: '10:00 AM',
-      status: 'Scheduled',
-    },
-    {
-      message: 'docs: Add documentation for scheduler',
-      date: '2024-08-15',
-      time: '02:30 PM',
-      status: 'Scheduled',
-    },
-    {
-      message: 'fix: Resolve issue with AI message generation',
-      date: '2024-08-16',
-      time: '11:00 AM',
-      status: 'Scheduled',
-    },
-    {
-      message: 'feat: Initial dashboard setup',
-      date: '2024-08-14',
-      time: '04:00 PM',
-      status: 'Done',
-    },
-];
+export type ScheduledCommit = {
+    message: string;
+    date: string;
+    time: string;
+    status: 'Scheduled' | 'Done';
+};
 
-export function UpcomingCommitsTable() {
+type UpcomingCommitsTableProps = {
+    scheduledCommits: ScheduledCommit[];
+};
+
+export function UpcomingCommitsTable({ scheduledCommits }: UpcomingCommitsTableProps) {
   return (
     <Card>
       <CardHeader>

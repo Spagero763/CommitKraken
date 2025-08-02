@@ -106,7 +106,7 @@ export function AiCommitGenerator() {
               <FormItem>
                 <FormLabel>Generated Message</FormLabel>
                 <div className="flex gap-2">
-                  <Input readOnly value={generatedMessage} />
+                  <Input readOnly value={generatedMessage} className="font-mono text-xs" />
                   <Button type="button" variant="outline" size="icon" onClick={handleCopy}>
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -118,7 +118,7 @@ export function AiCommitGenerator() {
             <Button type="submit" disabled={isLoading} className="bg-accent hover:bg-accent/90 text-accent-foreground">
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
+              ) : <Bot className="mr-2 h-4 w-4" />}
               Generate
             </Button>
           </CardFooter>

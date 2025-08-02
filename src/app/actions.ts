@@ -8,6 +8,10 @@ import {
   generateQuestion,
   type GenerateQuestionInput,
 } from '@/ai/flows/generate-question';
+import {
+  checkAnswer,
+  type CheckAnswerInput
+} from '@/ai/flows/check-answer';
 
 export async function getAiCommitMessage(input: GenerateCommitMessageInput): Promise<{
   success: boolean;
@@ -47,6 +51,25 @@ export async function getNewQuestion(input: GenerateQuestionInput): Promise<{
       question: null,
       topic: null,
       error: 'An unexpected error occurred while fetching a new question.',
+    };
+  }
+}
+
+export async function checkChallengeAnswer(input: CheckAnswerInput): Promise<{
+  success: boolean;
+  isCorrect: boolean;
+  feedback: string;
+  error?: string | null;
+}> {
+  try {
+    const result = await checkAnswer(input);
+    return { success: true, isCorrect: result.isCorrect, feedback: result.feedback };
+  } catch (error) {
+    console.error('Error checking answer:', error);
+    return {
+      success: false,
+      isCorrect: false,
+      feedback: 'An unexpected error occurred while checking the answer.',
     };
   }
 }

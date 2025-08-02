@@ -22,10 +22,11 @@ import {
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { BrainCircuit, Loader2 } from 'lucide-react';
-import { getNewQuestion } from '@/app/actions';
+import { BrainCircuit, CheckCircle, Loader2, XCircle } from 'lucide-react';
+import { checkChallengeAnswer, getNewQuestion } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   answer: z.string().min(10, {
@@ -37,10 +38,16 @@ type CommitChallengeCardProps = {
   onCorrectAnswer: () => void;
 };
 
+type AnswerResult = {
+  isCorrect: boolean;
+  feedback: string;
+} | null;
+
 export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProps) {
   const [question, setQuestion] = useState<{ text: string; topic: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [answerResult, setAnswerResult] = useState<AnswerResult>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -53,6 +60,7 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
   const handleGetQuestion = async () => {
     setIsLoading(true);
     setQuestion(null);
+    setAnswerResult(null);
     form.reset();
     const result = await getNewQuestion({ topic: 'JavaScript' }); // Hardcoded for now
     setIsLoading(false);
@@ -69,19 +77,39 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // TODO: Implement answer checking
-    console.log(values);
+    if (!question) return;
+
     setIsChecking(true);
-    // Simulate checking
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsChecking(false);
-    onCorrectAnswer();
-    toast({
-      title: 'Correct!',
-      description: 'Great job! That counts as a commit.',
+    setAnswerResult(null);
+
+    const result = await checkChallengeAnswer({
+      question: question.text,
+      answer: values.answer,
     });
-    setQuestion(null);
-    form.reset();
+    
+    setIsChecking(false);
+
+    if (result.success) {
+      setAnswerResult({ isCorrect: result.isCorrect, feedback: result.feedback });
+      if (result.isCorrect) {
+        onCorrectAnswer();
+        toast({
+          title: 'Correct!',
+          description: 'Great job! That counts as a commit.',
+        });
+        setTimeout(() => {
+            setQuestion(null);
+            setAnswerResult(null);
+            form.reset();
+        }, 3000)
+      }
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Failed to check your answer. Please try again.',
+        });
+    }
   }
 
   return (
@@ -123,16 +151,26 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
                         placeholder="Type your answer here..."
                         className="min-h-[100px] font-mono text-xs"
                         {...field}
+                        disabled={!!answerResult}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <Button type="submit" disabled={isChecking}>
+               <Button type="submit" disabled={isChecking || !!answerResult}>
                   {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submit Answer
                 </Button>
+                {answerResult && (
+                    <Alert variant={answerResult.isCorrect ? 'default' : 'destructive'} className={cn('mt-4', answerResult.isCorrect ? 'border-green-500 text-green-700' : '')}>
+                        <div className="flex items-center gap-2">
+                           {answerResult.isCorrect ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-destructive" />}
+                           <AlertTitle>{answerResult.isCorrect ? "Correct!" : "Incorrect"}</AlertTitle>
+                        </div>
+                        <AlertDescription className='pt-2'>{answerResult.feedback}</AlertDescription>
+                    </Alert>
+                )}
             </form>
           </Form>
         )}

@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/generate-commit-message.ts';
 import '@/ai/flows/generate-question.ts';
+import '@/ai/flows/check-answer.ts';

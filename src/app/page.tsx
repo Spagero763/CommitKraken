@@ -63,17 +63,25 @@ export default function Home() {
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ProgressCard commitsMade={answeredCorrectly} />
-            <StreakCard />
-            <RepositoryCard />
-            <div className="lg:col-span-3">
+            <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
+              <ProgressCard commitsMade={answeredCorrectly} />
+            </div>
+            <div className='animate-fade-in-up' style={{animationDelay: '200ms'}}>
+              <StreakCard />
+            </div>
+            <div className='animate-fade-in-up' style={{animationDelay: '300ms'}}>
+              <RepositoryCard />
+            </div>
+            <div className="lg:col-span-3 animate-fade-in-up" style={{animationDelay: '400ms'}}>
               <CommitChallengeCard onCorrectAnswer={handleCorrectAnswer} />
             </div>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 animate-fade-in-up" style={{animationDelay: '500ms'}}>
               <AiCommitGenerator />
             </div>
-            <SchedulerCard onScheduleCommit={addCommit} />
-            <div className="lg:col-span-3">
+            <div className="animate-fade-in-up" style={{animationDelay: '600ms'}}>
+              <SchedulerCard onScheduleCommit={addCommit} />
+            </div>
+            <div className="lg:col-span-3 animate-fade-in-up" style={{animationDelay: '700ms'}}>
               <UpcomingCommitsTable scheduledCommits={scheduledCommits} />
             </div>
           </div>

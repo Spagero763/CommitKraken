@@ -78,7 +78,7 @@ export default function Home() {
             <div className="md:col-span-2 lg:col-span-2 animate-fade-in-up" style={{animationDelay: '500ms'}}>
               <AiCommitGenerator />
             </div>
-            <div className="md:col-span-2 lg:col-span-1 animate-fade-in-up" style={{animationDelay: '600ms'}}>
+            <div className="lg:col-span-1 animate-fade-in-up" style={{animationDelay: '600ms'}}>
               <SchedulerCard onScheduleCommit={addCommit} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '700ms'}}>

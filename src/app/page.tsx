@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { User } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '@/lib/firebase';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
@@ -18,7 +19,6 @@ import { CommitActivityChart } from '@/components/features/commit-kraken/CommitA
 import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
 import Loading from './loading';
 import { Header } from '@/components/features/commit-kraken/Header';
-
 
 const initialCommits: ScheduledCommit[] = [
   {
@@ -54,19 +54,27 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
+  const router = useRouter();
 
 
   useEffect(() => {
     if (isFirebaseConfigured && auth) {
       const unsubscribe = auth.onAuthStateChanged((user) => {
-        setUser(user);
+        if (user) {
+          setUser(user);
+        } else {
+          router.push('/login');
+        }
         setLoading(false);
       });
       return () => unsubscribe();
     } else {
       setLoading(false);
+      // If firebase is not configured, we should not show a protected page.
+      // For now, we will just let it show the dashboard without a user.
+      // A better approach would be to redirect to a "setup required" page.
     }
-  }, []);
+  }, [router]);
 
 
   const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
@@ -88,6 +96,13 @@ export default function Home() {
   if (loading) {
     return <Loading />;
   }
+  
+  // This check is to prevent a flash of the dashboard while redirecting.
+  // When loading is false and user is null, it means we are about to redirect.
+  if (!user && isFirebaseConfigured) {
+    return <Loading />;
+  }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

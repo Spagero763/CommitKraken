@@ -57,8 +57,13 @@ export default function Home() {
     } else {
       router.push('/login');
     }
-    setIsLoading(false);
   }, [router]);
+
+  useEffect(() => {
+    if(!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
 
   const fetchCommits = async (userId: string) => {
     if (!db) return;
@@ -70,16 +75,23 @@ export default function Home() {
       setScheduledCommits(commits);
     } catch (error) {
         console.error("Error fetching commits: ", error);
+    } finally {
+        setIsLoading(false);
     }
   };
 
   const fetchUserProgress = async (userId: string) => {
     if (!db) return;
     try {
-        const progressRef = doc(db, 'users', userId, 'progress');
+        const progressRef = doc(db, 'users', userId);
         const docSnap = await getDoc(progressRef);
         if (docSnap.exists()) {
-            setUserProgress(docSnap.data() as UserProgress);
+            const data = docSnap.data();
+            setUserProgress({
+                commitsMade: data.commitsMade || 0,
+                commitStreak: data.commitStreak || 15,
+                topicsCompleted: data.topicsCompleted || [],
+            });
         } else {
             // Initialize progress if it doesn't exist
             const initialProgress: UserProgress = { commitsMade: 0, commitStreak: 15, topicsCompleted: [] };
@@ -147,11 +159,11 @@ export default function Home() {
     setUserProgress(updatedProgress);
 
     try {
-      const progressRef = doc(db, 'users', user.email, 'progress');
+      const progressRef = doc(db, 'users', user.email);
       await setDoc(progressRef, updatedProgress, { merge: true });
     } catch (error) {
       console.error("Error updating user progress: ", error);
-      // Revert optimistic update on error if needed, though current approach is simple
+      // Revert optimistic update on error if needed
     }
   }
 

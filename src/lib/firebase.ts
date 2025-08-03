@@ -12,7 +12,7 @@ const firebaseConfig: FirebaseOptions = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId;
+const isFirebaseConfigured = !!firebaseConfig.apiKey;
 
 const app = isFirebaseConfigured && !getApps().length ? initializeApp(firebaseConfig) : (isFirebaseConfigured ? getApp() : null);
 const auth = app ? getAuth(app) : null;

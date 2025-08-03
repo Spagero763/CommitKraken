@@ -74,7 +74,7 @@ export function Header({ user }: HeaderProps) {
                 </DropdownMenu>
             ) : (
                 <Button onClick={handleSignIn} disabled={!isFirebaseConfigured}>
-                    <Github className="mr-2" />
+                    <Github className="mr-2 h-4 w-4" />
                     Connect to GitHub
                 </Button>
             )}

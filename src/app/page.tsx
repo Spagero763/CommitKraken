@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
@@ -16,7 +14,6 @@ import {
 } from '@/components/features/commit-kraken/UpcomingCommitsTable';
 import { CommitActivityChart } from '@/components/features/commit-kraken/CommitActivityChart';
 import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
-import Loading from './loading';
 import { Header } from '@/components/features/commit-kraken/Header';
 
 const initialCommits: ScheduledCommit[] = [
@@ -46,22 +43,19 @@ const initialCommits: ScheduledCommit[] = [
   },
 ];
 
+// Mock user for development without authentication
+const mockUser = {
+  name: 'Dev User',
+  email: 'dev@example.com',
+  image: 'https://avatars.githubusercontent.com/u/1?v=4',
+};
+
 export default function Home() {
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
   const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
   const [commitStreak, setCommitStreak] = useState(15);
   const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
-  const router = useRouter();
-  const { data: session, status } = useSession();
-
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-
+  
   const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
     const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
     setScheduledCommits((prevCommits) =>
@@ -77,17 +71,13 @@ export default function Home() {
       setTopicsCompleted(prevTopics => [...prevTopics, topic]);
     }
   }
-
-  if (status === 'loading' || status === 'unauthenticated') {
-    return <Loading />;
-  }
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <Header user={mockUser} />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
-          <ProfileHeader user={session?.user ?? null} />
+          <ProfileHeader user={mockUser} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
               <ProgressCard commitsMade={answeredCorrectly} />
@@ -96,7 +86,7 @@ export default function Home() {
               <StreakCard streak={commitStreak} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '300ms'}}>
-              <RepositoryCard user={session?.user ?? null} />
+              <RepositoryCard user={mockUser} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '400ms'}}>
               <CommitActivityChart />

@@ -1,8 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Github, LogOut, Waves } from 'lucide-react';
-import { useSession, signIn, signOut } from "next-auth/react";
+import { LogOut, Waves } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,16 +14,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function Header() {
-  const { data: session, status } = useSession();
-  const user = session?.user;
-  
-  const handleSignIn = async () => {
-    await signIn('github');
-  };
+type User = {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+} | null;
 
+type HeaderProps = {
+    user?: User
+}
+
+export function Header({ user }: HeaderProps) {
+  
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' });
+    // No-op in dev mode
+    console.log("Signing out...");
   };
 
 
@@ -39,9 +43,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-4">
             <ThemeToggle />
-            {status === 'loading' ? (
-                <Skeleton className="h-10 w-28" />
-            ) : user ? (
+            {user ? (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className='relative h-10 w-10 rounded-full'>
@@ -68,10 +70,7 @@ export function Header() {
                     </DropdownMenuContent>
                 </DropdownMenu>
             ) : (
-                <Button onClick={handleSignIn}>
-                    <Github className="mr-2 h-4 w-4" />
-                    Connect to GitHub
-                </Button>
+                <Skeleton className="h-10 w-28" />
             )}
         </div>
       </div>

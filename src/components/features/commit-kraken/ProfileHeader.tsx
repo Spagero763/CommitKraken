@@ -1,9 +1,12 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { getProfileHeader } from '@/app/actions';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User as UserIcon, Code } from 'lucide-react';
+import { Code } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type User = {
   name?: string | null;
@@ -66,9 +69,10 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     >
       <div className="z-10">
         <div className="flex items-center gap-4">
-          <div className="rounded-full border-2 border-primary p-2 bg-background/20 backdrop-blur-sm">
-            <UserIcon className="h-10 w-10 text-primary" />
-          </div>
+           <Avatar className='h-16 w-16 border-2 border-primary bg-background/20 backdrop-blur-sm'>
+              <AvatarImage src={user.image || ''} alt={user.name || 'User'}/>
+              <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
           <div>
             <h2 className="text-3xl font-bold font-headline">
               {user.name || 'Welcome, Coder!'}

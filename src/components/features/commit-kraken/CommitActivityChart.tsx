@@ -67,7 +67,12 @@ export function CommitActivityChart() {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8} />
+            <Bar 
+              dataKey="desktop" 
+              fill="var(--color-desktop)" 
+              radius={8} 
+              animationDuration={500}
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>

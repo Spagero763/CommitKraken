@@ -17,6 +17,7 @@ import {
   type GenerateProfileHeaderInput,
   type GenerateProfileHeaderOutput,
 } from '@/ai/flows/generate-profile-header';
+import { generateVideo as generateVideoFlow } from '@/ai/flows/generate-video';
 
 export async function getAiCommitMessage(input: GenerateCommitMessageInput): Promise<{
   success: boolean;
@@ -95,6 +96,31 @@ export async function getProfileHeader(
       success: false,
       data: null,
       error: 'An unexpected error occurred while generating the profile header.',
+    };
+  }
+}
+
+// This is required to extend the default 5 minute timeout for serverless functions.
+// Video generation can take a while.
+export const maxDuration = 120; // 2 minutes
+
+export async function generateVideo(
+  prompt: string
+): Promise<{
+  success: boolean;
+  videoUrl: string | null;
+  error?: string | null;
+}> {
+  try {
+    const result = await generateVideoFlow(prompt);
+    return { success: true, videoUrl: result };
+  } catch (error) {
+    console.error('Error generating video:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return {
+      success: false,
+      videoUrl: null,
+      error: errorMessage,
     };
   }
 }

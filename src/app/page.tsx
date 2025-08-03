@@ -15,6 +15,7 @@ import {
 import { CommitActivityChart } from '@/components/features/commit-kraken/CommitActivityChart';
 import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
 import { Header } from '@/components/features/commit-kraken/Header';
+import { VideoGeneratorCard } from '@/components/features/commit-kraken/VideoGeneratorCard';
 
 const initialCommits: ScheduledCommit[] = [
   {
@@ -94,16 +95,19 @@ export default function Home() {
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
               <AchievementsCard correctAnswers={answeredCorrectly} streak={commitStreak} topicsCompleted={topicsCompleted.length} />
             </div>
-            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '600ms'}}>
+            <div className="lg:col-span-3 animate-fade-in-up" style={{animationDelay: '600ms'}}>
+              <VideoGeneratorCard />
+            </div>
+            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '700ms'}}>
               <CommitChallengeCard onCorrectAnswer={handleCorrectAnswer} />
             </div>
-            <div className="md:col-span-2 lg:col-span-2 animate-fade-in-up" style={{animationDelay: '700ms'}}>
+            <div className="md:col-span-2 lg:col-span-2 animate-fade-in-up" style={{animationDelay: '800ms'}}>
               <AiCommitGenerator />
             </div>
-            <div className="lg:col-span-1 animate-fade-in-up" style={{animationDelay: '800ms'}}>
+            <div className="lg:col-span-1 animate-fade-in-up" style={{animationDelay: '900ms'}}>
               <SchedulerCard onScheduleCommit={addCommit} />
             </div>
-            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '900ms'}}>
+            <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '1000ms'}}>
               <UpcomingCommitsTable scheduledCommits={scheduledCommits} />
             </div>
           </div>

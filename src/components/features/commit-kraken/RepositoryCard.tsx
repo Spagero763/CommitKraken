@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { GitBranch, User } from 'lucide-react';
-import type { User as FirebaseUser } from 'firebase/auth';
+import { GitBranch } from 'lucide-react';
+import type { Session } from 'next-auth';
 
 type RepositoryCardProps = {
-  user: FirebaseUser | null;
+  user: Session['user'] | null;
 }
 
 export function RepositoryCard({ user }: RepositoryCardProps) {
@@ -19,7 +19,7 @@ export function RepositoryCard({ user }: RepositoryCardProps) {
       <CardContent>
         <div className="flex items-center gap-3 bg-muted p-3 rounded-md border">
             <div className="font-mono text-sm font-semibold text-muted-foreground">
-                {user ? `${user.displayName}/commit-kraken-project` : 'your-org/commit-kraken-project'}
+                {user ? `${user.name}/commit-kraken-project` : 'your-org/commit-kraken-project'}
             </div>
         </div>
       </CardContent>

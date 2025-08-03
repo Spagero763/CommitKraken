@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { User } from 'firebase/auth';
-import { auth, isFirebaseConfigured } from '@/lib/firebase';
+import { useSession } from 'next-auth/react';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
@@ -51,30 +50,16 @@ export default function Home() {
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
   const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
   const [commitStreak, setCommitStreak] = useState(15);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
   const router = useRouter();
+  const { data: session, status } = useSession();
 
 
   useEffect(() => {
-    if (isFirebaseConfigured && auth) {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        if (user) {
-          setUser(user);
-        } else {
-          router.push('/login');
-        }
-        setLoading(false);
-      });
-      return () => unsubscribe();
-    } else {
-      setLoading(false);
-      // If firebase is not configured, we should not show a protected page.
-      // For now, we will just let it show the dashboard without a user.
-      // A better approach would be to redirect to a "setup required" page.
+    if (status === 'unauthenticated') {
+      router.push('/login');
     }
-  }, [router]);
+  }, [status, router]);
 
 
   const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
@@ -93,23 +78,16 @@ export default function Home() {
     }
   }
 
-  if (loading) {
+  if (status === 'loading' || status === 'unauthenticated') {
     return <Loading />;
   }
   
-  // This check is to prevent a flash of the dashboard while redirecting.
-  // When loading is false and user is null, it means we are about to redirect.
-  if (!user && isFirebaseConfigured) {
-    return <Loading />;
-  }
-
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header user={user} />
+      <Header />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
-          <ProfileHeader user={user} />
+          <ProfileHeader user={session?.user ?? null} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
               <ProgressCard commitsMade={answeredCorrectly} />
@@ -118,7 +96,7 @@ export default function Home() {
               <StreakCard streak={commitStreak} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '300ms'}}>
-              <RepositoryCard user={user} />
+              <RepositoryCard user={session?.user ?? null} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '400ms'}}>
               <CommitActivityChart />

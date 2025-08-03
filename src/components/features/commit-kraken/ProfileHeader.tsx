@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { User } from 'firebase/auth';
+import type { Session } from 'next-auth';
 import { getProfileHeader } from '@/app/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User as UserIcon, Code } from 'lucide-react';
 
 type ProfileHeaderProps = {
-  user: User | null;
+  user: Session['user'] | null;
 };
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
@@ -19,9 +19,10 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
 
   useEffect(() => {
     const fetchHeader = async () => {
+      if (!user) return;
       setIsLoading(true);
       const result = await getProfileHeader({
-        name: user?.displayName || 'The Coder',
+        name: user?.name || 'The Coder',
       });
       if (result.success && result.data) {
         setHeaderData(result.data);
@@ -50,7 +51,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
           </div>
           <div>
             <h2 className="text-3xl font-bold font-headline">
-              {user?.displayName || 'Welcome, Coder!'}
+              {user?.name || 'Welcome, Coder!'}
             </h2>
             <div className="flex items-center gap-2 mt-1">
               <Code className="h-4 w-4 text-accent" />

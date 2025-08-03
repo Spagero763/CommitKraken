@@ -2,33 +2,32 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Github, Waves } from 'lucide-react';
-import { auth, isFirebaseConfigured, signInWithGithub } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/features/commit-kraken/ThemeToggle';
+import Loading from '../loading';
 
 
 export default function LoginPage() {
     const router = useRouter();
+    const { data: session, status } = useSession();
     const { toast } = useToast();
 
     useEffect(() => {
-        if (isFirebaseConfigured && auth) {
-          const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
-              router.push('/');
-            }
-          });
-          return () => unsubscribe();
+        if (status === 'authenticated') {
+          router.push('/');
         }
-      }, [router]);
+      }, [status, router]);
 
     const handleSignIn = async () => {
         try {
-            await signInWithGithub();
-            router.push('/');
+            const result = await signIn('github', { redirect: false });
+            if (result?.error) {
+                throw new Error(result.error);
+            }
         } catch (error) {
             console.error("Sign in failed:", error);
             toast({
@@ -39,6 +38,14 @@ export default function LoginPage() {
         }
     };
     
+    if (status === 'loading') {
+        return <Loading />
+    }
+
+    if (status === 'authenticated') {
+        return <Loading /> // Or a redirect component
+    }
+
     return (
         <div className="flex flex-col min-h-screen items-center justify-center bg-background p-4">
             <div className="absolute top-4 right-4">
@@ -52,19 +59,14 @@ export default function LoginPage() {
                             CommitKraken
                         </h1>
                     </div>
-                    <CardTitle className="text-2xl">Welcome Back!</CardTitle>
+                    <CardTitle className="text-2xl">Welcome!</CardTitle>
                     <CardDescription>Sign in to gamify your commit history and unleash your productivity.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={handleSignIn} className="w-full" disabled={!isFirebaseConfigured}>
+                    <Button onClick={handleSignIn} className="w-full">
                         <Github className="mr-2" />
                         Sign In with GitHub
                     </Button>
-                    {!isFirebaseConfigured && (
-                         <p className="text-xs text-muted-foreground text-center mt-4">
-                            GitHub sign-in is currently disabled. Please configure Firebase to enable it.
-                         </p>
-                    )}
                 </CardContent>
             </Card>
         </div>

@@ -66,7 +66,7 @@ export default function Home() {
       const commitsRef = collection(db, 'users', userName, 'scheduledCommits');
       const q = query(commitsRef, orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
-      const commits = querySnapshot.docs.map(doc => doc.data() as ScheduledCommit);
+      const commits = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ScheduledCommit));
       setScheduledCommits(commits);
     } catch (error) {
         console.error("Error fetching commits: ", error);
@@ -98,14 +98,19 @@ export default function Home() {
     router.push('/login');
   };
 
-  const addCommit = async (commit: Omit<ScheduledCommit, 'status'>) => {
+  const addCommit = async (commit: Omit<ScheduledCommit, 'status' | 'id'>) => {
     if (!db || !user?.name) return;
-    const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
+    const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled', id: '' };
     try {
       const commitsRef = collection(db, 'users', user.name, 'scheduledCommits');
-      await addDoc(commitsRef, newCommit);
-      // Re-fetch to keep it simple, or add to state optimistically
-      fetchCommits(user.name);
+      const docRef = await addDoc(commitsRef, {
+        message: newCommit.message,
+        date: newCommit.date,
+        time: newCommit.time,
+        status: newCommit.status
+      });
+      newCommit.id = docRef.id;
+      setScheduledCommits(prevCommits => [newCommit, ...prevCommits]);
     } catch (error) {
       console.error("Error adding document: ", error);
     }
@@ -114,20 +119,22 @@ export default function Home() {
   const handleCorrectAnswer = async (topic: string) => {
     if (!db || !user?.name) return;
     
-    const newProgress: UserProgress = {
+    // Optimistically update UI
+    const updatedProgress: UserProgress = {
       ...userProgress,
       commitsMade: userProgress.commitsMade + 1,
-      topicsCompleted: userProgress.topicsCompleted.includes(topic) 
-        ? userProgress.topicsCompleted 
-        : [...userProgress.topicsCompleted, topic],
+      topicsCompleted: [...new Set([...userProgress.topicsCompleted, topic])],
     };
+    setUserProgress(updatedProgress);
 
+    // Persist to Firestore
     try {
       const progressRef = doc(db, 'users', user.name, 'progress');
-      await setDoc(progressRef, newProgress);
-      setUserProgress(newProgress);
+      await setDoc(progressRef, updatedProgress, { merge: true });
     } catch (error) {
       console.error("Error updating user progress: ", error);
+      // Revert optimistic update on error
+      setUserProgress(userProgress);
     }
   }
 

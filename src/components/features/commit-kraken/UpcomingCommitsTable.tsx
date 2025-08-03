@@ -26,6 +26,7 @@ import { MoreVertical, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export type ScheduledCommit = {
+    id: string;
     message: string;
     date: string;
     time: string;
@@ -61,8 +62,8 @@ export function UpcomingCommitsTable({ scheduledCommits }: UpcomingCommitsTableP
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {scheduledCommits.map((commit, index) => (
-                <TableRow key={index}>
+                {scheduledCommits.map((commit) => (
+                <TableRow key={commit.id}>
                     <TableCell className="font-medium">{commit.message}</TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground">{commit.date}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">{commit.time}</TableCell>

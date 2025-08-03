@@ -11,11 +11,11 @@ import { Award, BadgeCheck, Medal, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type AchievementsCardProps = {
-  commitsMade: number;
+  correctAnswers: number;
   streak: number;
 };
 
-export function AchievementsCard({ commitsMade: correctAnswers, streak }: AchievementsCardProps) {
+export function AchievementsCard({ correctAnswers, streak }: AchievementsCardProps) {
 
   const achievements = [
     {

@@ -99,7 +99,7 @@ export default function Home() {
               <CommitActivityChart />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-              <AchievementsCard commitsMade={answeredCorrectly} streak={commitStreak} />
+              <AchievementsCard correctAnswers={answeredCorrectly} streak={commitStreak} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '600ms'}}>
               <CommitChallengeCard onCorrectAnswer={handleCorrectAnswer} />

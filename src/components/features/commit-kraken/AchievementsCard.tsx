@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Award, BadgeCheck, Flame, GitBranch, Medal, Star, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 type AchievementsCardProps = {
   correctAnswers: number;

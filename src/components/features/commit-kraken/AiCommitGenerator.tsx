@@ -20,6 +20,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,10 +34,15 @@ import { Bot, Copy, Loader2 } from 'lucide-react';
 import { getAiCommitMessage } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 
+const personalities = ['professional', 'witty', 'concise', 'descriptive'];
+const commitTypes = ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore'];
+
 const formSchema = z.object({
   diff: z.string().min(10, {
     message: 'Diff must be at least 10 characters.',
   }),
+  personality: z.string(),
+  type: z.string(),
 });
 
 export function AiCommitGenerator() {
@@ -42,6 +54,8 @@ export function AiCommitGenerator() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       diff: '',
+      personality: 'professional',
+      type: 'feat',
     },
   });
 
@@ -81,10 +95,56 @@ export function AiCommitGenerator() {
               <CardTitle>AI Commit Message Generator</CardTitle>
             </div>
             <CardDescription>
-              Paste your code changes (diff) below to generate a commit message.
+              Paste your code changes (diff) below and select your preferences to generate a commit message.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Commit Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a commit type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {commitTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="personality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AI Personality</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a personality" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {personalities.map(p => (
+                          <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="diff"

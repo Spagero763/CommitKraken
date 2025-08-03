@@ -42,7 +42,7 @@ const formSchema = z.object({
 });
 
 type CommitChallengeCardProps = {
-  onCorrectAnswer: () => void;
+  onCorrectAnswer: (topic: string) => void;
 };
 
 type AnswerResult = {
@@ -102,7 +102,7 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
     if (result.success) {
       setAnswerResult({ isCorrect: result.isCorrect, feedback: result.feedback });
       if (result.isCorrect) {
-        onCorrectAnswer();
+        onCorrectAnswer(question.topic);
         toast({
           title: 'Correct!',
           description: 'Great job! That counts as a commit.',

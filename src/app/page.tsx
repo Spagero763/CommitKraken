@@ -53,6 +53,7 @@ export default function Home() {
   const [commitStreak, setCommitStreak] = useState(15);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
 
 
   useEffect(() => {
@@ -77,8 +78,11 @@ export default function Home() {
     );
   };
   
-  const handleCorrectAnswer = () => {
+  const handleCorrectAnswer = (topic: string) => {
     setAnsweredCorrectly(count => count + 1);
+    if (!topicsCompleted.includes(topic)) {
+      setTopicsCompleted(prevTopics => [...prevTopics, topic]);
+    }
   }
 
   if (loading) {
@@ -105,7 +109,7 @@ export default function Home() {
               <CommitActivityChart />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-              <AchievementsCard correctAnswers={answeredCorrectly} streak={commitStreak} />
+              <AchievementsCard correctAnswers={answeredCorrectly} streak={commitStreak} topicsCompleted={topicsCompleted.length} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '600ms'}}>
               <CommitChallengeCard onCorrectAnswer={handleCorrectAnswer} />

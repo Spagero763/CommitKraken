@@ -7,15 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Award, BadgeCheck, Medal, Trophy } from 'lucide-react';
+import { Award, BadgeCheck, Flame, GitBranch, Medal, Star, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type AchievementsCardProps = {
   correctAnswers: number;
   streak: number;
+  topicsCompleted: number;
 };
 
-export function AchievementsCard({ correctAnswers, streak }: AchievementsCardProps) {
+export function AchievementsCard({ correctAnswers, streak, topicsCompleted }: AchievementsCardProps) {
 
   const achievements = [
     {
@@ -25,16 +26,16 @@ export function AchievementsCard({ correctAnswers, streak }: AchievementsCardPro
       unlocked: streak >= 5,
     },
     {
-      icon: <Medal className="h-8 w-8 text-orange-400" />,
+      icon: <Flame className="h-8 w-8 text-orange-400" />,
       title: 'Streak Pro',
-      description: 'Achieve a 10-day commit streak.',
-      unlocked: streak >= 10,
+      description: 'Achieve a 15-day commit streak.',
+      unlocked: streak >= 15,
     },
     {
-      icon: <Award className="h-8 w-8 text-indigo-400" />,
-      title: 'Commit Centurion',
-      description: 'Make 100 commits.',
-      unlocked: correctAnswers >= 100,
+      icon: <Medal className="h-8 w-8 text-slate-400" />,
+      title: 'Streak Master',
+      description: 'Achieve a 30-day commit streak.',
+      unlocked: streak >= 30,
     },
     {
       icon: <BadgeCheck className="h-8 w-8 text-green-400" />,
@@ -42,6 +43,24 @@ export function AchievementsCard({ correctAnswers, streak }: AchievementsCardPro
       description: 'Answer 10 challenge questions correctly.',
       unlocked: correctAnswers >= 10,
     },
+    {
+        icon: <Award className="h-8 w-8 text-blue-400" />,
+        title: 'Commit Centurion',
+        description: 'Make 100 commits.',
+        unlocked: correctAnswers >= 100,
+    },
+    {
+        icon: <Star className="h-8 w-8 text-purple-400" />,
+        title: 'Polymath',
+        description: 'Complete a challenge in all topics.',
+        unlocked: topicsCompleted >= 5,
+    },
+    {
+        icon: <GitBranch className="h-8 w-8 text-red-400" />,
+        title: 'Commit Pioneer',
+        description: 'Make your first commit.',
+        unlocked: correctAnswers >= 1,
+    }
   ];
 
   return (
@@ -56,7 +75,7 @@ export function AchievementsCard({ correctAnswers, streak }: AchievementsCardPro
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {achievements.map((achievement, index) => (
             <div
               key={index}

@@ -50,9 +50,9 @@ export default function Home() {
     if (savedSession) {
       const parsedUser = JSON.parse(savedSession) as MockUser;
       setUser(parsedUser);
-      if (parsedUser.name) {
-        fetchCommits(parsedUser.name);
-        fetchUserProgress(parsedUser.name);
+      if (parsedUser.email) {
+        fetchCommits(parsedUser.email);
+        fetchUserProgress(parsedUser.email);
       }
     } else {
       router.push('/login');
@@ -60,10 +60,10 @@ export default function Home() {
     setIsLoading(false);
   }, [router]);
 
-  const fetchCommits = async (userName: string) => {
+  const fetchCommits = async (userId: string) => {
     if (!db) return;
     try {
-      const commitsRef = collection(db, 'users', userName, 'scheduledCommits');
+      const commitsRef = collection(db, 'users', userId, 'scheduledCommits');
       const q = query(commitsRef, orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
       const commits = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ScheduledCommit));
@@ -73,10 +73,10 @@ export default function Home() {
     }
   };
 
-  const fetchUserProgress = async (userName: string) => {
+  const fetchUserProgress = async (userId: string) => {
     if (!db) return;
     try {
-        const progressRef = doc(db, 'users', userName, 'progress');
+        const progressRef = doc(db, 'users', userId, 'progress');
         const docSnap = await getDoc(progressRef);
         if (docSnap.exists()) {
             setUserProgress(docSnap.data() as UserProgress);
@@ -99,10 +99,10 @@ export default function Home() {
   };
 
   const addCommit = async (commit: Omit<ScheduledCommit, 'status' | 'id'>) => {
-    if (!db || !user?.name) return;
+    if (!db || !user?.email) return;
     const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled', id: '' };
     try {
-      const commitsRef = collection(db, 'users', user.name, 'scheduledCommits');
+      const commitsRef = collection(db, 'users', user.email, 'scheduledCommits');
       const docRef = await addDoc(commitsRef, {
         message: newCommit.message,
         date: newCommit.date,
@@ -117,7 +117,7 @@ export default function Home() {
   };
   
   const handleCorrectAnswer = async (topic: string) => {
-    if (!db || !user?.name) return;
+    if (!db || !user?.email) return;
     
     // Optimistically update UI
     const updatedProgress: UserProgress = {
@@ -129,7 +129,7 @@ export default function Home() {
 
     // Persist to Firestore
     try {
-      const progressRef = doc(db, 'users', user.name, 'progress');
+      const progressRef = doc(db, 'users', user.email, 'progress');
       await setDoc(progressRef, updatedProgress, { merge: true });
     } catch (error) {
       console.error("Error updating user progress: ", error);

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { User } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '@/lib/firebase';
-import { Header } from '@/components/features/commit-kraken/Header';
+import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
 import { RepositoryCard } from '@/components/features/commit-kraken/RepositoryCard';
@@ -17,6 +17,7 @@ import {
 import { CommitActivityChart } from '@/components/features/commit-kraken/CommitActivityChart';
 import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
 import Loading from './loading';
+import { Header } from '@/components/features/commit-kraken/Header';
 
 
 const initialCommits: ScheduledCommit[] = [
@@ -89,7 +90,8 @@ export default function Home() {
       <Header user={user} />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ProfileHeader user={user} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
               <ProgressCard commitsMade={answeredCorrectly} />
             </div>

@@ -93,7 +93,7 @@ export default function Home() {
               <StreakCard streak={commitStreak} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '300ms'}}>
-              <RepositoryCard />
+              <RepositoryCard user={user} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '400ms'}}>
               <CommitActivityChart />

@@ -1,7 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { GitBranch } from 'lucide-react';
+import { GitBranch, User } from 'lucide-react';
+import type { User as FirebaseUser } from 'firebase/auth';
 
-export function RepositoryCard() {
+type RepositoryCardProps = {
+  user: FirebaseUser | null;
+}
+
+export function RepositoryCard({ user }: RepositoryCardProps) {
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -14,7 +19,7 @@ export function RepositoryCard() {
       <CardContent>
         <div className="flex items-center gap-3 bg-muted p-3 rounded-md border">
             <div className="font-mono text-sm font-semibold text-muted-foreground">
-                your-org/commit-kraken-project
+                {user ? `${user.displayName}/commit-kraken-project` : 'your-org/commit-kraken-project'}
             </div>
         </div>
       </CardContent>

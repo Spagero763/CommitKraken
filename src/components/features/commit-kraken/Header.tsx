@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Github, LogOut, Waves } from 'lucide-react';
-import { signInWithGithub, signOut, type User } from '@/lib/firebase';
+import { signInWithGithub, signOut, type User, isFirebaseConfigured } from '@/lib/firebase';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -70,7 +70,7 @@ export function Header({ user }: HeaderProps) {
                 </DropdownMenuContent>
             </DropdownMenu>
         ) : (
-            <Button onClick={handleSignIn}>
+            <Button onClick={handleSignIn} disabled={!isFirebaseConfigured}>
                 <Github className="mr-2" />
                 Connect to GitHub
             </Button>

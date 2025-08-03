@@ -12,16 +12,26 @@ const firebaseConfig: FirebaseOptions = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const githubProvider = new GithubAuthProvider();
+const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId;
+
+const app = isFirebaseConfigured && !getApps().length ? initializeApp(firebaseConfig) : (isFirebaseConfigured ? getApp() : null);
+const auth = app ? getAuth(app) : null;
+const githubProvider = app ? new GithubAuthProvider() : null;
 
 const signInWithGithub = () => {
+    if (!auth || !githubProvider) {
+        console.error('Firebase is not configured. Please add Firebase config to your .env file.');
+        return Promise.reject(new Error('Firebase not configured'));
+    }
     return signInWithPopup(auth, githubProvider);
 }
 
 const signOut = () => {
+    if (!auth) {
+        console.error('Firebase is not configured.');
+        return Promise.reject(new Error('Firebase not configured'));
+    }
     return firebaseSignOut(auth);
 }
 
-export { auth, onAuthStateChanged, signInWithGithub, signOut, type User };
+export { auth, onAuthStateChanged, signInWithGithub, signOut, type User, isFirebaseConfigured };

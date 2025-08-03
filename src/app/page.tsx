@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, isFirebaseConfigured } from '@/lib/firebase';
 import { Header } from '@/components/features/commit-kraken/Header';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
@@ -55,11 +55,15 @@ export default function Home() {
 
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
+    if (isFirebaseConfigured && auth) {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        setUser(user);
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    } else {
       setLoading(false);
-    });
-    return () => unsubscribe();
+    }
   }, []);
 
 

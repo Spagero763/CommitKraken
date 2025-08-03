@@ -15,7 +15,7 @@ type AchievementsCardProps = {
   streak: number;
 };
 
-export function AchievementsCard({ commitsMade, streak }: AchievementsCardProps) {
+export function AchievementsCard({ commitsMade: correctAnswers, streak }: AchievementsCardProps) {
 
   const achievements = [
     {
@@ -34,13 +34,13 @@ export function AchievementsCard({ commitsMade, streak }: AchievementsCardProps)
       icon: <Award className="h-8 w-8 text-indigo-400" />,
       title: 'Commit Centurion',
       description: 'Make 100 commits.',
-      unlocked: commitsMade >= 100,
+      unlocked: correctAnswers >= 100,
     },
     {
       icon: <BadgeCheck className="h-8 w-8 text-green-400" />,
       title: 'Challenge Champion',
       description: 'Answer 10 challenge questions correctly.',
-      unlocked: commitsMade >= 10,
+      unlocked: correctAnswers >= 10,
     },
   ];
 

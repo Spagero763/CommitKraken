@@ -24,7 +24,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Clapperboard, Loader2, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateVideo } from '@/app/actions';
 
 const formSchema = z.object({
   prompt: z.string().min(10, 'Prompt must be at least 10 characters.'),
@@ -48,28 +47,46 @@ export function VideoGeneratorCard() {
     setVideoUrl(null);
     setStatusMessage('Sending prompt to the video generator...');
 
-    const result = await generateVideo(values.prompt);
-    setIsLoading(false);
-
-    if (result.success && result.videoUrl) {
-      setStatusMessage('Video generated successfully!');
-      setVideoUrl(result.videoUrl);
-      toast({
-        title: 'Success!',
-        description: 'Your video has been generated.',
+    try {
+      const response = await fetch('/api/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: values.prompt }),
       });
-    } else {
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate video.');
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.videoUrl) {
+        setStatusMessage('Video generated successfully!');
+        setVideoUrl(result.videoUrl);
+        toast({
+          title: 'Success!',
+          description: 'Your video has been generated.',
+        });
+      } else {
+        throw new Error(result.error || 'Failed to generate video.');
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unexpected error occurred.';
       setStatusMessage('An error occurred during video generation.');
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: result.error || 'Failed to generate video.',
+        description: errorMessage,
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
-    <Card>
+    <Card className="card-interactive">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>
@@ -119,7 +136,11 @@ export function VideoGeneratorCard() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="button-interactive"
+            >
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (

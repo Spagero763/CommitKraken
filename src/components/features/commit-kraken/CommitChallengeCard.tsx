@@ -123,7 +123,7 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
   }
 
   return (
-    <Card className="lg:col-span-3">
+    <Card className="lg:col-span-3 card-interactive">
       <CardHeader>
         <div className="flex items-center gap-3">
           <BrainCircuit className="h-6 w-6 text-primary" />
@@ -138,7 +138,7 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
           <div className="flex flex-col items-center gap-4">
              <div className="w-full max-w-xs">
                 <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-                    <SelectTrigger>
+                    <SelectTrigger className="button-interactive">
                         <SelectValue placeholder="Select a topic" />
                     </SelectTrigger>
                     <SelectContent>
@@ -146,7 +146,7 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
                     </SelectContent>
                 </Select>
             </div>
-            <Button onClick={handleGetQuestion} disabled={isLoading}>
+            <Button onClick={handleGetQuestion} disabled={isLoading} className="button-interactive">
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Get New Question
             </Button>
@@ -178,7 +178,7 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
                   </FormItem>
                 )}
               />
-               <Button type="submit" disabled={isChecking || !!answerResult}>
+               <Button type="submit" disabled={isChecking || !!answerResult} className="button-interactive">
                   {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submit Answer
                 </Button>

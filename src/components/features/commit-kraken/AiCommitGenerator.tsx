@@ -86,7 +86,7 @@ export function AiCommitGenerator() {
   }
 
   return (
-    <Card>
+    <Card className='card-interactive'>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>
@@ -167,7 +167,7 @@ export function AiCommitGenerator() {
                 <FormLabel>Generated Message</FormLabel>
                 <div className="flex gap-2">
                   <Input readOnly value={generatedMessage} className="font-mono text-xs" />
-                  <Button type="button" variant="outline" size="icon" onClick={handleCopy}>
+                  <Button type="button" variant="outline" size="icon" onClick={handleCopy} className="button-interactive">
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
@@ -175,7 +175,7 @@ export function AiCommitGenerator() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="button-interactive">
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : <Bot className="mr-2 h-4 w-4" />}

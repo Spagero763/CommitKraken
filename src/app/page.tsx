@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
@@ -16,6 +18,7 @@ import { CommitActivityChart } from '@/components/features/commit-kraken/CommitA
 import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
 import { Header } from '@/components/features/commit-kraken/Header';
 import { VideoGeneratorCard } from '@/components/features/commit-kraken/VideoGeneratorCard';
+import Loading from './loading';
 
 const initialCommits: ScheduledCommit[] = [
   {
@@ -44,7 +47,6 @@ const initialCommits: ScheduledCommit[] = [
   },
 ];
 
-// Mock user for development without authentication
 const mockUser = {
   name: 'Dev User',
   email: 'dev@example.com',

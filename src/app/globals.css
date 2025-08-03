@@ -10,49 +10,49 @@
     --card-foreground: 210 10% 23%;
     --popover: 210 40% 100%;
     --popover-foreground: 210 10% 23%;
-    --primary: 330 85% 55%; /* Neon Magenta */
+    --primary: 220 90% 60%; /* Vibrant Blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 180 50% 90%; /* Light Cyan */
-    --secondary-foreground: 180 50% 20%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 210 10% 23%;
     --muted: 210 40% 94%;
     --muted-foreground: 210 10% 45%;
-    --accent: 190 85% 50%; /* Bright Cyan */
+    --accent: 180 85% 45%; /* Teal */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 210 20% 88%;
     --input: 210 30% 96%;
-    --ring: 330 85% 55%;
+    --ring: 220 90% 60%;
     --radius: 0.5rem;
-    --chart-1: 330 85% 55%;
-    --chart-2: 190 85% 50%;
+    --chart-1: 220 90% 60%;
+    --chart-2: 180 85% 45%;
     --chart-3: 210 90% 50%;
     --chart-4: 300 80% 60%;
     --chart-5: 15 90% 55%;
   }
 
   .dark {
-    --background: 220 25% 10%;
+    --background: 224 71% 4%;
     --foreground: 210 40% 98%;
-    --card: 220 25% 15%;
+    --card: 224 71% 9%;
     --card-foreground: 210 40% 98%;
-    --popover: 220 25% 10%;
+    --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 330 90% 65%; /* Neon Magenta */
+    --primary: 220 90% 65%; /* Vibrant Blue */
     --primary-foreground: 0 0% 0%;
-    --secondary: 220 15% 25%;
+    --secondary: 224 71% 14%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 220 15% 25%;
+    --muted: 224 71% 14%;
     --muted-foreground: 210 20% 65%;
-    --accent: 190 90% 60%; /* Bright Cyan */
+    --accent: 180 90% 55%; /* Teal */
     --accent-foreground: 0 0% 0%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 15% 25%;
-    --input: 220 15% 25%;
-    --ring: 330 90% 65%;
-    --chart-1: 330 90% 65%;
-    --chart-2: 190 90% 60%;
+    --border: 224 71% 14%;
+    --input: 224 71% 14%;
+    --ring: 220 90% 65%;
+    --chart-1: 220 90% 65%;
+    --chart-2: 180 90% 55%;
     --chart-3: 210 90% 60%;
     --chart-4: 300 85% 65%;
     --chart-5: 15 95% 60%;
@@ -65,5 +65,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .card-interactive {
+    @apply transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 cursor-pointer;
+  }
+  .button-interactive {
+    @apply transition-transform duration-200 ease-in-out hover:-translate-y-0.5;
   }
 }

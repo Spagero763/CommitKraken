@@ -8,7 +8,7 @@ type RepositoryCardProps = {
 
 export function RepositoryCard({ user }: RepositoryCardProps) {
   return (
-    <Card>
+    <Card className='card-interactive'>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Repository</CardTitle>

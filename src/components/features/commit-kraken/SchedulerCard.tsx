@@ -87,7 +87,7 @@ export function SchedulerCard({ onScheduleCommit }: SchedulerCardProps) {
   }
 
   return (
-    <Card>
+    <Card className='card-interactive'>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>
@@ -124,7 +124,7 @@ export function SchedulerCard({ onScheduleCommit }: SchedulerCardProps) {
                           <Button
                             variant={'outline'}
                             className={cn(
-                              'w-full justify-start text-left font-normal',
+                              'w-full justify-start text-left font-normal button-interactive',
                               !field.value && 'text-muted-foreground'
                             )}
                           >
@@ -169,7 +169,7 @@ export function SchedulerCard({ onScheduleCommit }: SchedulerCardProps) {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full button-interactive">
               <CalendarPlus className="mr-2" />
               Schedule Commit
             </Button>

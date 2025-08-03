@@ -11,7 +11,7 @@ export function ProgressCard({ commitsMade = 0 }: ProgressCardProps) {
   const progress = (commitsMade / goalCommits) * 100;
 
   return (
-    <Card className="bg-gradient-to-br from-primary to-accent text-primary-foreground">
+    <Card className="bg-gradient-to-br from-primary to-accent text-primary-foreground card-interactive">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Commit Goal</CardTitle>

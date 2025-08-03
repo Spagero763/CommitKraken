@@ -7,7 +7,7 @@ type StreakCardProps = {
 
 export function StreakCard({ streak }: StreakCardProps) {
   return (
-    <Card>
+    <Card className='card-interactive'>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Commit Streak</CardTitle>

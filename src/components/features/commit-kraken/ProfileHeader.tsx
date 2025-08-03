@@ -1,13 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { Session } from 'next-auth';
 import { getProfileHeader } from '@/app/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User as UserIcon, Code } from 'lucide-react';
 
+type User = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+} | null;
+
 type ProfileHeaderProps = {
-  user: Session['user'] | null;
+  user: User;
 };
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {

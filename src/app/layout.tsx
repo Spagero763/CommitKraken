@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { NextAuthProvider } from '@/components/features/commit-kraken/NextAuthProvider';
 
 export const metadata: Metadata = {
   title: 'CommitKraken',
@@ -21,9 +20,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <NextAuthProvider>
-            {children}
-        </NextAuthProvider>
+        {children}
         <Toaster />
       </body>
     </html>

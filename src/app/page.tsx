@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc, deleteDoc, updateDoc, Timestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
@@ -15,11 +15,12 @@ import {
   UpcomingCommitsTable,
   type ScheduledCommit,
 } from '@/components/features/commit-kraken/UpcomingCommitsTable';
-import { CommitActivityChart } from '@/components/features/commit-kraken/CommitActivityChart';
+import { CommitActivityChart, type CommitActivityData } from '@/components/features/commit-kraken/CommitActivityChart';
 import { AchievementsCard } from '@/components/features/commit-kraken/AchievementsCard';
 import { Header } from '@/components/features/commit-kraken/Header';
 import { VideoGeneratorCard } from '@/components/features/commit-kraken/VideoGeneratorCard';
 import Loading from './loading';
+import { subDays, format } from 'date-fns';
 
 type MockUser = {
   name?: string | null;
@@ -39,6 +40,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>([]);
+  const [commitActivity, setCommitActivity] = useState<CommitActivityData[]>([]);
   const [userProgress, setUserProgress] = useState<UserProgress>({
     commitsMade: 0,
     commitStreak: 0,
@@ -53,6 +55,7 @@ export default function Home() {
       if (parsedUser.email) {
         fetchCommits(parsedUser.email);
         fetchUserProgress(parsedUser.email);
+        fetchCommitActivity(parsedUser.email);
       }
     } else {
       router.push('/login');
@@ -79,6 +82,38 @@ export default function Home() {
         setIsLoading(false);
     }
   };
+
+  const fetchCommitActivity = async (userId: string) => {
+    if (!db) return;
+    try {
+      const activityRef = collection(db, 'users', userId, 'commitActivity');
+      const sevenDaysAgo = subDays(new Date(), 7);
+      const q = query(activityRef, where('timestamp', '>=', sevenDaysAgo));
+      const querySnapshot = await getDocs(q);
+      
+      const activityByDay: {[key: string]: number} = {};
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        const date = (data.timestamp as Timestamp).toDate();
+        const formattedDate = format(date, 'MMM d');
+        activityByDay[formattedDate] = (activityByDay[formattedDate] || 0) + 1;
+      });
+
+      const chartData = Array.from({ length: 7 }, (_, i) => {
+        const date = subDays(new Date(), 6 - i);
+        const formattedDate = format(date, 'MMM d');
+        return {
+          date: formattedDate,
+          commits: activityByDay[formattedDate] || 0,
+        };
+      });
+
+      setCommitActivity(chartData);
+
+    } catch (error) {
+      console.error("Error fetching commit activity: ", error);
+    }
+  }
 
   const fetchUserProgress = async (userId: string) => {
     if (!db) return;
@@ -151,6 +186,18 @@ export default function Home() {
   const handleCorrectAnswer = async (topic: string) => {
     if (!db || !user?.email) return;
     
+    // Optimistically update UI
+    const today = format(new Date(), 'MMM d');
+    setCommitActivity(prev => {
+        const todayData = prev.find(d => d.date === today);
+        if (todayData) {
+            return prev.map(d => d.date === today ? {...d, commits: d.commits + 1} : d);
+        }
+        // This case is unlikely if the date range is correct, but handled just in case
+        return [...prev, { date: today, commits: 1 }];
+    });
+
+
     const updatedProgress: UserProgress = {
       ...userProgress,
       commitsMade: userProgress.commitsMade + 1,
@@ -159,11 +206,21 @@ export default function Home() {
     setUserProgress(updatedProgress);
 
     try {
+      // Save to DB
       const progressRef = doc(db, 'users', user.email);
       await setDoc(progressRef, updatedProgress, { merge: true });
+
+      const activityRef = collection(db, 'users', user.email, 'commitActivity');
+      await addDoc(activityRef, {
+        timestamp: Timestamp.now(),
+        topic: topic,
+      });
+
     } catch (error) {
       console.error("Error updating user progress: ", error);
       // Revert optimistic update on error if needed
+      fetchUserProgress(user.email);
+      fetchCommitActivity(user.email);
     }
   }
 
@@ -188,7 +245,7 @@ export default function Home() {
               <RepositoryCard user={user} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '400ms'}}>
-              <CommitActivityChart />
+              <CommitActivityChart data={commitActivity} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
               <AchievementsCard correctAnswers={userProgress.commitsMade} streak={userProgress.commitStreak} topicsCompleted={userProgress.topicsCompleted.length} />

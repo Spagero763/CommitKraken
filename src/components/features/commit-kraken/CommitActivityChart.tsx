@@ -14,36 +14,24 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { GitCommit } from 'lucide-react';
-import { subDays, format } from 'date-fns';
-import { useEffect, useState } from 'react';
 
 const chartConfig = {
-  desktop: {
+  commits: {
     label: 'Commits',
     color: 'hsl(var(--primary))',
   },
 };
 
-type ChartData = {
-    date: string;
-    desktop: number;
-}[];
+export type CommitActivityData = {
+  date: string;
+  commits: number;
+};
 
-export function CommitActivityChart() {
-  const [chartData, setChartData] = useState<ChartData>([]);
+type CommitActivityChartProps = {
+  data: CommitActivityData[];
+};
 
-  useEffect(() => {
-    const today = new Date();
-    const data = Array.from({ length: 7 }, (_, i) => {
-        const date = subDays(today, 6 - i);
-        return {
-            date: format(date, 'MMM d'),
-            desktop: Math.floor(Math.random() * 10) + 1,
-        };
-    });
-    setChartData(data);
-  }, []);
-
+export function CommitActivityChart({ data }: CommitActivityChartProps) {
   return (
     <Card>
       <CardHeader>
@@ -51,11 +39,17 @@ export function CommitActivityChart() {
           <GitCommit className="h-6 w-6 text-primary" />
           <CardTitle>Commit Activity</CardTitle>
         </div>
-        <CardDescription>Your commit history for the last 7 days.</CardDescription>
+        <CardDescription>
+          Your commit history for the last 7 days from challenges.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-          <BarChart accessibilityLayer data={chartData} margin={{ top: 20 }}>
+          <BarChart
+            accessibilityLayer
+            data={data}
+            margin={{ top: 20 }}
+          >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
@@ -67,10 +61,10 @@ export function CommitActivityChart() {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar 
-              dataKey="desktop" 
-              fill="var(--color-desktop)" 
-              radius={8} 
+            <Bar
+              dataKey="commits"
+              fill="var(--color-commits)"
+              radius={8}
               animationDuration={500}
             />
           </BarChart>

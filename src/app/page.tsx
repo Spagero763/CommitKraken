@@ -20,7 +20,7 @@ import { AchievementsCard } from '@/components/features/commit-kraken/Achievemen
 import { Header } from '@/components/features/commit-kraken/Header';
 import { VideoGeneratorCard } from '@/components/features/commit-kraken/VideoGeneratorCard';
 import Loading from './loading';
-import { subDays, format } from 'date-fns';
+import { subDays, format, startOfDay } from 'date-fns';
 
 type MockUser = {
   name?: string | null;
@@ -87,7 +87,8 @@ export default function Home() {
     if (!db) return;
     try {
       const activityRef = collection(db, 'users', userId, 'commitActivity');
-      const sevenDaysAgo = subDays(new Date(), 7);
+      // Fix: Query from the start of the day 6 days ago to ensure a full 7-day range
+      const sevenDaysAgo = startOfDay(subDays(new Date(), 6));
       const q = query(activityRef, where('timestamp', '>=', sevenDaysAgo));
       const querySnapshot = await getDocs(q);
       

@@ -20,6 +20,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { BrainCircuit, CheckCircle, Loader2, XCircle } from 'lucide-react';
@@ -43,11 +50,14 @@ type AnswerResult = {
   feedback: string;
 } | null;
 
+const topics = ['JavaScript', 'React', 'CSS', 'HTML', 'Python'];
+
 export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProps) {
   const [question, setQuestion] = useState<{ text: string; topic: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [answerResult, setAnswerResult] = useState<AnswerResult>(null);
+  const [selectedTopic, setSelectedTopic] = useState('React');
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -62,7 +72,7 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
     setQuestion(null);
     setAnswerResult(null);
     form.reset();
-    const result = await getNewQuestion({ topic: 'JavaScript' }); // Hardcoded for now
+    const result = await getNewQuestion({ topic: selectedTopic });
     setIsLoading(false);
 
     if (result.success && result.question && result.topic) {
@@ -125,7 +135,17 @@ export function CommitChallengeCard({ onCorrectAnswer }: CommitChallengeCardProp
       </CardHeader>
       <CardContent>
         {!question && (
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-4">
+             <div className="w-full max-w-xs">
+                <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a topic" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {topics.map(topic => <SelectItem key={topic} value={topic}>{topic}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
             <Button onClick={handleGetQuestion} disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Get New Question

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
@@ -100,26 +100,45 @@ export default function Home() {
 
   const addCommit = async (commit: Omit<ScheduledCommit, 'status' | 'id'>) => {
     if (!db || !user?.email) return;
-    const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled', id: '' };
+    const newCommit: Omit<ScheduledCommit, 'id'> = { ...commit, status: 'Scheduled' };
     try {
       const commitsRef = collection(db, 'users', user.email, 'scheduledCommits');
-      const docRef = await addDoc(commitsRef, {
-        message: newCommit.message,
-        date: newCommit.date,
-        time: newCommit.time,
-        status: newCommit.status
-      });
-      newCommit.id = docRef.id;
-      setScheduledCommits(prevCommits => [newCommit, ...prevCommits]);
+      const docRef = await addDoc(commitsRef, newCommit);
+      setScheduledCommits(prevCommits => [{...newCommit, id: docRef.id}, ...prevCommits]);
     } catch (error) {
       console.error("Error adding document: ", error);
+    }
+  };
+
+  const updateCommit = async (commit: ScheduledCommit) => {
+    if (!db || !user?.email) return;
+    try {
+        const commitRef = doc(db, 'users', user.email, 'scheduledCommits', commit.id);
+        await updateDoc(commitRef, {
+            message: commit.message,
+            date: commit.date,
+            time: commit.time,
+        });
+        setScheduledCommits(prevCommits => prevCommits.map(c => c.id === commit.id ? commit : c));
+    } catch (error) {
+        console.error("Error updating document: ", error);
+    }
+  };
+
+  const deleteCommit = async (commitId: string) => {
+    if (!db || !user?.email) return;
+    try {
+        const commitRef = doc(db, 'users', user.email, 'scheduledCommits', commitId);
+        await deleteDoc(commitRef);
+        setScheduledCommits(prevCommits => prevCommits.filter(c => c.id !== commitId));
+    } catch (error) {
+        console.error("Error deleting document: ", error);
     }
   };
   
   const handleCorrectAnswer = async (topic: string) => {
     if (!db || !user?.email) return;
     
-    // Optimistically update UI
     const updatedProgress: UserProgress = {
       ...userProgress,
       commitsMade: userProgress.commitsMade + 1,
@@ -127,14 +146,12 @@ export default function Home() {
     };
     setUserProgress(updatedProgress);
 
-    // Persist to Firestore
     try {
       const progressRef = doc(db, 'users', user.email, 'progress');
       await setDoc(progressRef, updatedProgress, { merge: true });
     } catch (error) {
       console.error("Error updating user progress: ", error);
-      // Revert optimistic update on error
-      setUserProgress(userProgress);
+      // Revert optimistic update on error if needed, though current approach is simple
     }
   }
 
@@ -177,7 +194,11 @@ export default function Home() {
               <SchedulerCard onScheduleCommit={addCommit} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '1000ms'}}>
-              <UpcomingCommitsTable scheduledCommits={scheduledCommits} />
+              <UpcomingCommitsTable 
+                scheduledCommits={scheduledCommits} 
+                onEditCommit={updateCommit}
+                onDeleteCommit={deleteCommit}
+              />
             </div>
           </div>
         </div>

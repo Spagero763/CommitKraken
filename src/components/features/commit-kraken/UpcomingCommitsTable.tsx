@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -22,8 +23,22 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu"
-import { MoreVertical, ListTodo } from 'lucide-react';
+import { MoreVertical, ListTodo, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { EditCommitDialog } from './EditCommitDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 export type ScheduledCommit = {
     id: string;
@@ -35,10 +50,53 @@ export type ScheduledCommit = {
 
 type UpcomingCommitsTableProps = {
     scheduledCommits: ScheduledCommit[];
+    onEditCommit: (commit: ScheduledCommit) => Promise<void>;
+    onDeleteCommit: (commitId: string) => Promise<void>;
 };
 
-export function UpcomingCommitsTable({ scheduledCommits }: UpcomingCommitsTableProps) {
+export function UpcomingCommitsTable({ scheduledCommits, onEditCommit, onDeleteCommit }: UpcomingCommitsTableProps) {
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [editingCommit, setEditingCommit] = useState<ScheduledCommit | null>(null);
+
+  const handleDelete = async (commitId: string) => {
+    setIsDeleting(commitId);
+    try {
+      await onDeleteCommit(commitId);
+      toast({
+        title: 'Commit Canceled',
+        description: 'The scheduled commit has been removed.',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to cancel the commit. Please try again.',
+      });
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleUpdate = async (updatedCommit: ScheduledCommit) => {
+    try {
+      await onEditCommit(updatedCommit);
+      toast({
+        title: 'Commit Updated',
+        description: 'Your scheduled commit has been updated.',
+      });
+      setEditingCommit(null);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update the commit. Please try again.',
+      });
+    }
+  };
+
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
@@ -75,14 +133,36 @@ export function UpcomingCommitsTable({ scheduledCommits }: UpcomingCommitsTableP
                     <TableCell className="text-right">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" disabled={isDeleting === commit.id}>
+                            {isDeleting === commit.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
                             <span className="sr-only">Actions</span>
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align='end'>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Cancel</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setEditingCommit(commit)}>
+                              <Edit className='mr-2' />
+                              Edit
+                          </DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <Trash2 className='mr-2 text-destructive' />
+                                  <span className='text-destructive'>Cancel</span>
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently cancel your scheduled commit.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Back</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(commit.id)}>Continue</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </DropdownMenuContent>
                     </DropdownMenu>
                     </TableCell>
@@ -91,7 +171,21 @@ export function UpcomingCommitsTable({ scheduledCommits }: UpcomingCommitsTableP
             </TableBody>
             </Table>
         </div>
+        {scheduledCommits.length === 0 && (
+            <div className="text-center p-8 text-muted-foreground">
+                You have no scheduled commits yet.
+            </div>
+        )}
       </CardContent>
     </Card>
+    {editingCommit && (
+        <EditCommitDialog
+            commit={editingCommit}
+            isOpen={!!editingCommit}
+            onClose={() => setEditingCommit(null)}
+            onUpdate={handleUpdate}
+        />
+    )}
+    </>
   );
 }

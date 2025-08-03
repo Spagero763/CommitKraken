@@ -67,7 +67,7 @@ export function UpcomingCommitsTable({ scheduledCommits }: UpcomingCommitsTableP
                     <TableCell className="hidden sm:table-cell text-muted-foreground">{commit.date}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">{commit.time}</TableCell>
                     <TableCell>
-                    <Badge variant={commit.status === 'Done' ? 'secondary' : 'default'} className="capitalize">
+                    <Badge variant={commit.status === 'Done' ? 'outline' : 'default'} className="capitalize">
                         {commit.status.toLowerCase()}
                     </Badge>
                     </TableCell>

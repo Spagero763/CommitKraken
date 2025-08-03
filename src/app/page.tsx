@@ -87,7 +87,6 @@ export default function Home() {
     if (!db) return;
     try {
       const activityRef = collection(db, 'users', userId, 'commitActivity');
-      // Fix: Query from the start of the day 6 days ago to ensure a full 7-day range
       const sevenDaysAgo = startOfDay(subDays(new Date(), 6));
       const q = query(activityRef, where('timestamp', '>=', sevenDaysAgo));
       const querySnapshot = await getDocs(q);
@@ -129,7 +128,6 @@ export default function Home() {
                 topicsCompleted: data.topicsCompleted || [],
             });
         } else {
-            // Initialize progress if it doesn't exist
             const initialProgress: UserProgress = { commitsMade: 0, commitStreak: 15, topicsCompleted: [] };
             await setDoc(progressRef, initialProgress);
             setUserProgress(initialProgress);
@@ -187,14 +185,12 @@ export default function Home() {
   const handleCorrectAnswer = async (topic: string) => {
     if (!db || !user?.email) return;
     
-    // Optimistically update UI
     const today = format(new Date(), 'MMM d');
     setCommitActivity(prev => {
         const todayData = prev.find(d => d.date === today);
         if (todayData) {
             return prev.map(d => d.date === today ? {...d, commits: d.commits + 1} : d);
         }
-        // This case is unlikely if the date range is correct, but handled just in case
         return [...prev, { date: today, commits: 1 }];
     });
 
@@ -207,9 +203,11 @@ export default function Home() {
     setUserProgress(updatedProgress);
 
     try {
-      // Save to DB
       const progressRef = doc(db, 'users', user.email);
-      await setDoc(progressRef, updatedProgress, { merge: true });
+      await setDoc(progressRef, { 
+        commitsMade: updatedProgress.commitsMade,
+        topicsCompleted: updatedProgress.topicsCompleted,
+       }, { merge: true });
 
       const activityRef = collection(db, 'users', user.email, 'commitActivity');
       await addDoc(activityRef, {
@@ -219,7 +217,6 @@ export default function Home() {
 
     } catch (error) {
       console.error("Error updating user progress: ", error);
-      // Revert optimistic update on error if needed
       fetchUserProgress(user.email);
       fetchCommitActivity(user.email);
     }

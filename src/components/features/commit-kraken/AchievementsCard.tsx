@@ -61,7 +61,8 @@ export function AchievementsCard({ correctAnswers, streak, topicsCompleted }: Ac
         description: 'Make your first commit.',
         unlocked: correctAnswers >= 1,
     }
-  ];
+  ].sort((a, b) => (a.unlocked === b.unlocked) ? 0 : a.unlocked ? -1 : 1);
+
 
   return (
     <Card>
@@ -75,24 +76,25 @@ export function AchievementsCard({ correctAnswers, streak, topicsCompleted }: Ac
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {achievements.map((achievement, index) => (
             <div
               key={index}
               className={cn(
-                'flex items-center gap-4 rounded-lg border p-4 transition-all duration-500',
-                !achievement.unlocked && 'opacity-50 grayscale'
+                'flex flex-col items-center text-center gap-2 rounded-lg border p-4 transition-all duration-300',
+                achievement.unlocked ? 'bg-card shadow-lg' : 'bg-muted/50'
               )}
             >
               <div
                 className={cn(
-                  'flex-shrink-0',
+                  'flex-shrink-0 transition-transform duration-500',
+                   achievement.unlocked && 'animate-fade-in-up'
                 )}
               >
-                {achievement.icon}
+                {React.cloneElement(achievement.icon, { className: cn(achievement.icon.props.className, !achievement.unlocked && 'grayscale opacity-30')})}
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-card-foreground">
+                <p className={cn("font-semibold", achievement.unlocked ? 'text-card-foreground': 'text-muted-foreground')}>
                   {achievement.title}
                 </p>
                 <p className="text-sm text-muted-foreground">

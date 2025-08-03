@@ -1,9 +1,7 @@
 'use client';
 
-// This file is kept for potential future use with other Firebase services.
-// The authentication has been migrated to NextAuth.js.
-
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig: FirebaseOptions = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -18,4 +16,6 @@ const isFirebaseConfigured = !!firebaseConfig.apiKey;
 
 const app = isFirebaseConfigured && !getApps().length ? initializeApp(firebaseConfig) : (isFirebaseConfigured ? getApp() : null);
 
-export { isFirebaseConfigured, app };
+const db = app ? getFirestore(app) : null;
+
+export { isFirebaseConfigured, app, db };

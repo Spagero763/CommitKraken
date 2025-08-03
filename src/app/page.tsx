@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
 import { StreakCard } from '@/components/features/commit-kraken/StreakCard';
@@ -18,35 +20,6 @@ import { AchievementsCard } from '@/components/features/commit-kraken/Achievemen
 import { Header } from '@/components/features/commit-kraken/Header';
 import { VideoGeneratorCard } from '@/components/features/commit-kraken/VideoGeneratorCard';
 import Loading from './loading';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
-
-const initialCommits: ScheduledCommit[] = [
-  {
-    message: 'refactor: Update styling components',
-    date: '2024-08-15',
-    time: '10:00 AM',
-    status: 'Scheduled',
-  },
-  {
-    message: 'docs: Add documentation for scheduler',
-    date: '2024-08-15',
-    time: '02:30 PM',
-    status: 'Scheduled',
-  },
-  {
-    message: 'fix: Resolve issue with AI message generation',
-    date: '2024-08-16',
-    time: '11:00 AM',
-    status: 'Scheduled',
-  },
-  {
-    message: 'feat: Initial dashboard setup',
-    date: '2024-08-14',
-    time: '04:00 PM',
-    status: 'Done',
-  },
-];
 
 type MockUser = {
   name?: string | null;
@@ -59,34 +32,51 @@ export default function Home() {
   const [user, setUser] = useState<MockUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
+  const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>([]);
   const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
   const [commitStreak, setCommitStreak] = useState(15);
   const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
   
   useEffect(() => {
-    // Check for mock session in localStorage
     const savedSession = localStorage.getItem('mockUserSession');
     if (savedSession) {
-      setUser(JSON.parse(savedSession));
+      const parsedUser = JSON.parse(savedSession);
+      setUser(parsedUser);
+      fetchCommits(parsedUser.name);
     } else {
       router.push('/login');
     }
     setIsLoading(false);
   }, [router]);
 
+  const fetchCommits = async (userName: string | null) => {
+    if (!db || !userName) return;
+    try {
+      const commitsRef = collection(db, 'users', userName, 'scheduledCommits');
+      const q = query(commitsRef, orderBy('date', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const commits = querySnapshot.docs.map(doc => doc.data() as ScheduledCommit);
+      setScheduledCommits(commits);
+    } catch (error) {
+        console.error("Error fetching commits: ", error);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('mockUserSession');
     router.push('/login');
   };
 
-  const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
+  const addCommit = async (commit: Omit<ScheduledCommit, 'status'>) => {
+    if (!db || !user?.name) return;
     const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
-    setScheduledCommits((prevCommits) =>
-      [...prevCommits, newCommit].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      )
-    );
+    try {
+      const commitsRef = collection(db, 'users', user.name, 'scheduledCommits');
+      await addDoc(commitsRef, newCommit);
+      setScheduledCommits(prev => [newCommit, ...prev]);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
   };
   
   const handleCorrectAnswer = (topic: string) => {

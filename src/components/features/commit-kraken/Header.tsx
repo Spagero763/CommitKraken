@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
 import { Skeleton } from '@/components/ui/skeleton';
+import { signOut, useSession } from 'next-auth/react';
 
 type User = {
     name?: string | null;
@@ -27,8 +28,7 @@ type HeaderProps = {
 export function Header({ user }: HeaderProps) {
   
   const handleSignOut = async () => {
-    // No-op in dev mode
-    console.log("Signing out...");
+    await signOut({ callbackUrl: '/login' });
   };
 
 
@@ -49,7 +49,7 @@ export function Header({ user }: HeaderProps) {
                         <Button variant="ghost" className='relative h-10 w-10 rounded-full'>
                             <Avatar className='h-10 w-10'>
                                 <AvatarImage src={user.image || ''} alt={user.name || 'User'}/>
-                                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                         </Button>
                     </DropdownMenuTrigger>

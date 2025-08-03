@@ -19,7 +19,7 @@ export function RepositoryCard({ user }: RepositoryCardProps) {
       <CardContent>
         <div className="flex items-center gap-3 bg-muted p-3 rounded-md border">
             <div className="font-mono text-sm font-semibold text-muted-foreground">
-                {user ? `${user.name}/commit-kraken-project` : 'your-org/commit-kraken-project'}
+                {user?.name ? `${user.name}/commit-kraken-project` : 'your-org/commit-kraken-project'}
             </div>
         </div>
       </CardContent>

@@ -47,18 +47,20 @@ const initialCommits: ScheduledCommit[] = [
   },
 ];
 
-const mockUser = {
-  name: 'Dev User',
-  email: 'dev@example.com',
-  image: 'https://avatars.githubusercontent.com/u/1?v=4',
-};
-
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>(initialCommits);
   const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
   const [commitStreak, setCommitStreak] = useState(15);
   const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
   
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
   const addCommit = (commit: Omit<ScheduledCommit, 'status'>) => {
     const newCommit: ScheduledCommit = { ...commit, status: 'Scheduled' };
     setScheduledCommits((prevCommits) =>
@@ -74,13 +76,17 @@ export default function Home() {
       setTopicsCompleted(prevTopics => [...prevTopics, topic]);
     }
   }
+
+  if (status === 'loading' || !session) {
+    return <Loading />;
+  }
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header user={mockUser} />
+      <Header user={session.user} />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
-          <ProfileHeader user={mockUser} />
+          <ProfileHeader user={session.user} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
               <ProgressCard commitsMade={answeredCorrectly} />
@@ -89,7 +95,7 @@ export default function Home() {
               <StreakCard streak={commitStreak} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '300ms'}}>
-              <RepositoryCard user={mockUser} />
+              <RepositoryCard user={session.user} />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{animationDelay: '400ms'}}>
               <CommitActivityChart />

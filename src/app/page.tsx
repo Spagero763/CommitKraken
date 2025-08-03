@@ -90,7 +90,7 @@ export default function Home() {
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className='animate-fade-in-up lg:col-span-1 md:col-span-2' style={{animationDelay: '100ms'}}>
+            <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
               <ProgressCard commitsMade={answeredCorrectly} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '200ms'}}>

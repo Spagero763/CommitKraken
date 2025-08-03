@@ -15,16 +15,7 @@ import {
 } from '@/components/ui/chart';
 import { GitCommit } from 'lucide-react';
 import { subDays, format } from 'date-fns';
-
-const today = new Date();
-const chartData = Array.from({ length: 7 }, (_, i) => {
-    const date = subDays(today, 6 - i);
-    return {
-        date: format(date, 'MMM d'),
-        desktop: Math.floor(Math.random() * 10) + 1,
-    };
-});
-
+import { useEffect, useState } from 'react';
 
 const chartConfig = {
   desktop: {
@@ -33,7 +24,26 @@ const chartConfig = {
   },
 };
 
+type ChartData = {
+    date: string;
+    desktop: number;
+}[];
+
 export function CommitActivityChart() {
+  const [chartData, setChartData] = useState<ChartData>([]);
+
+  useEffect(() => {
+    const today = new Date();
+    const data = Array.from({ length: 7 }, (_, i) => {
+        const date = subDays(today, 6 - i);
+        return {
+            date: format(date, 'MMM d'),
+            desktop: Math.floor(Math.random() * 10) + 1,
+        };
+    });
+    setChartData(data);
+  }, []);
+
   return (
     <Card>
       <CardHeader>

@@ -77,7 +77,7 @@ export function AiCommitGenerator() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>
             <div className="flex items-center gap-3">
-              <Bot className="h-6 w-6 text-accent" />
+              <Bot className="h-6 w-6 text-primary" />
               <CardTitle>AI Commit Message Generator</CardTitle>
             </div>
             <CardDescription>
@@ -115,7 +115,7 @@ export function AiCommitGenerator() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : <Bot className="mr-2 h-4 w-4" />}

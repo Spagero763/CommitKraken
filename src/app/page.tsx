@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ProfileHeader } from '@/components/features/commit-kraken/ProfileHeader';
 import { ProgressCard } from '@/components/features/commit-kraken/ProgressCard';
@@ -27,30 +27,41 @@ type MockUser = {
   image?: string | null;
 };
 
+type UserProgress = {
+  commitsMade: number;
+  commitStreak: number;
+  topicsCompleted: string[];
+}
+
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<MockUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [scheduledCommits, setScheduledCommits] = useState<ScheduledCommit[]>([]);
-  const [answeredCorrectly, setAnsweredCorrectly] = useState(0);
-  const [commitStreak, setCommitStreak] = useState(15);
-  const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
+  const [userProgress, setUserProgress] = useState<UserProgress>({
+    commitsMade: 0,
+    commitStreak: 0,
+    topicsCompleted: [],
+  });
   
   useEffect(() => {
     const savedSession = localStorage.getItem('mockUserSession');
     if (savedSession) {
-      const parsedUser = JSON.parse(savedSession);
+      const parsedUser = JSON.parse(savedSession) as MockUser;
       setUser(parsedUser);
-      fetchCommits(parsedUser.name);
+      if (parsedUser.name) {
+        fetchCommits(parsedUser.name);
+        fetchUserProgress(parsedUser.name);
+      }
     } else {
       router.push('/login');
     }
     setIsLoading(false);
   }, [router]);
 
-  const fetchCommits = async (userName: string | null) => {
-    if (!db || !userName) return;
+  const fetchCommits = async (userName: string) => {
+    if (!db) return;
     try {
       const commitsRef = collection(db, 'users', userName, 'scheduledCommits');
       const q = query(commitsRef, orderBy('date', 'desc'));
@@ -62,8 +73,28 @@ export default function Home() {
     }
   };
 
+  const fetchUserProgress = async (userName: string) => {
+    if (!db) return;
+    try {
+        const progressRef = doc(db, 'users', userName, 'progress');
+        const docSnap = await getDoc(progressRef);
+        if (docSnap.exists()) {
+            setUserProgress(docSnap.data() as UserProgress);
+        } else {
+            // Initialize progress if it doesn't exist
+            const initialProgress: UserProgress = { commitsMade: 0, commitStreak: 15, topicsCompleted: [] };
+            await setDoc(progressRef, initialProgress);
+            setUserProgress(initialProgress);
+        }
+    } catch (error) {
+        console.error("Error fetching user progress: ", error);
+    }
+  };
+
+
   const handleLogout = () => {
     localStorage.removeItem('mockUserSession');
+    setUser(null);
     router.push('/login');
   };
 
@@ -73,16 +104,30 @@ export default function Home() {
     try {
       const commitsRef = collection(db, 'users', user.name, 'scheduledCommits');
       await addDoc(commitsRef, newCommit);
-      setScheduledCommits(prev => [newCommit, ...prev]);
+      // Re-fetch to keep it simple, or add to state optimistically
+      fetchCommits(user.name);
     } catch (error) {
       console.error("Error adding document: ", error);
     }
   };
   
-  const handleCorrectAnswer = (topic: string) => {
-    setAnsweredCorrectly(count => count + 1);
-    if (!topicsCompleted.includes(topic)) {
-      setTopicsCompleted(prevTopics => [...prevTopics, topic]);
+  const handleCorrectAnswer = async (topic: string) => {
+    if (!db || !user?.name) return;
+    
+    const newProgress: UserProgress = {
+      ...userProgress,
+      commitsMade: userProgress.commitsMade + 1,
+      topicsCompleted: userProgress.topicsCompleted.includes(topic) 
+        ? userProgress.topicsCompleted 
+        : [...userProgress.topicsCompleted, topic],
+    };
+
+    try {
+      const progressRef = doc(db, 'users', user.name, 'progress');
+      await setDoc(progressRef, newProgress);
+      setUserProgress(newProgress);
+    } catch (error) {
+      console.error("Error updating user progress: ", error);
     }
   }
 
@@ -98,10 +143,10 @@ export default function Home() {
           <ProfileHeader user={user} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
-              <ProgressCard commitsMade={answeredCorrectly} />
+              <ProgressCard commitsMade={userProgress.commitsMade} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '200ms'}}>
-              <StreakCard streak={commitStreak} />
+              <StreakCard streak={userProgress.commitStreak} />
             </div>
             <div className='animate-fade-in-up' style={{animationDelay: '300ms'}}>
               <RepositoryCard user={user} />
@@ -110,7 +155,7 @@ export default function Home() {
               <CommitActivityChart />
             </div>
             <div className="md:col-span-2 lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-              <AchievementsCard correctAnswers={answeredCorrectly} streak={commitStreak} topicsCompleted={topicsCompleted.length} />
+              <AchievementsCard correctAnswers={userProgress.commitsMade} streak={userProgress.commitStreak} topicsCompleted={userProgress.topicsCompleted.length} />
             </div>
             <div className="lg:col-span-3 animate-fade-in-up" style={{animationDelay: '600ms'}}>
               <VideoGeneratorCard />

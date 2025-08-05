@@ -12,11 +12,6 @@ import {
   checkAnswer,
   type CheckAnswerInput
 } from '@/ai/flows/check-answer';
-import {
-  generateProfileHeader,
-  type GenerateProfileHeaderInput,
-  type GenerateProfileHeaderOutput,
-} from '@/ai/flows/generate-profile-header';
 
 export async function getAiCommitMessage(input: GenerateCommitMessageInput): Promise<{
   success: boolean;
@@ -75,26 +70,6 @@ export async function checkChallengeAnswer(input: CheckAnswerInput): Promise<{
       success: false,
       isCorrect: false,
       feedback: 'An unexpected error occurred while checking the answer.',
-    };
-  }
-}
-
-export async function getProfileHeader(
-  input: GenerateProfileHeaderInput
-): Promise<{
-  success: boolean;
-  data: GenerateProfileHeaderOutput | null;
-  error?: string | null;
-}> {
-  try {
-    const result = await generateProfileHeader(input);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error generating profile header:', error);
-    return {
-      success: false,
-      data: null,
-      error: 'An unexpected error occurred while generating the profile header.',
     };
   }
 }

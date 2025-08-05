@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Waves, User, Link as LinkIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { generateProfileHeader } from '@/ai/flows/generate-profile-header';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,9 +17,8 @@ export default function LoginPage() {
   const [githubUrl, setGithubUrl] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleSignIn = () => {
-    if (!name || !githubUrl) {
-      // Simple validation, you might want to add more robust feedback
+  const handleSignIn = async () => {
+    if (!name || !githubUrl || !db) {
       alert('Please enter your name and GitHub URL.');
       return;
     }
@@ -23,20 +26,43 @@ export default function LoginPage() {
     setIsSigningIn(true);
 
     const githubUsername = githubUrl.split('/').pop() || 'github';
+    const email = `${githubUsername.toLowerCase()}@example.com`;
     
     const user = {
       name,
-      email: `${githubUsername.toLowerCase()}@example.com`,
+      email,
       image: `https://avatars.githubusercontent.com/${githubUsername}`,
     };
 
-    // Store the mock session in localStorage
-    localStorage.setItem('mockUserSession', JSON.stringify(user));
-    
-    // Simulate a network request
-    setTimeout(() => {
+    try {
+      const userRef = doc(db, 'users', user.email);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        // User is new, generate header and create their document
+        const headerData = await generateProfileHeader({ name: user.name });
+        
+        await setDoc(userRef, {
+          name: user.name,
+          image: user.image,
+          commitsMade: 0,
+          commitStreak: 15,
+          topicsCompleted: [],
+          motto: headerData.motto,
+          imageUrl: headerData.imageUrl,
+        });
+      }
+
+      // Store the mock session in localStorage
+      localStorage.setItem('mockUserSession', JSON.stringify(user));
+      
       router.push('/');
-    }, 500);
+
+    } catch (error) {
+      console.error("Error during sign-in:", error);
+      alert("An error occurred during sign-in. Please try again.");
+      setIsSigningIn(false);
+    }
   };
 
 

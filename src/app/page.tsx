@@ -32,6 +32,8 @@ type UserProgress = {
   commitsMade: number;
   commitStreak: number;
   topicsCompleted: string[];
+  motto: string;
+  imageUrl: string;
 }
 
 export default function Home() {
@@ -45,6 +47,8 @@ export default function Home() {
     commitsMade: 0,
     commitStreak: 0,
     topicsCompleted: [],
+    motto: '',
+    imageUrl: '',
   });
   
   useEffect(() => {
@@ -126,9 +130,12 @@ export default function Home() {
                 commitsMade: data.commitsMade || 0,
                 commitStreak: data.commitStreak || 15,
                 topicsCompleted: data.topicsCompleted || [],
+                motto: data.motto || 'Code with passion. Build with purpose.',
+                imageUrl: data.imageUrl || '',
             });
         } else {
-            const initialProgress: UserProgress = { commitsMade: 0, commitStreak: 15, topicsCompleted: [] };
+            // This case should ideally not be hit if login page sets progress
+            const initialProgress: UserProgress = { commitsMade: 0, commitStreak: 15, topicsCompleted: [], motto: '', imageUrl: '' };
             await setDoc(progressRef, initialProgress);
             setUserProgress(initialProgress);
         }
@@ -195,7 +202,7 @@ export default function Home() {
     });
 
 
-    const updatedProgress: UserProgress = {
+    const updatedProgress = {
       ...userProgress,
       commitsMade: userProgress.commitsMade + 1,
       topicsCompleted: [...new Set([...userProgress.topicsCompleted, topic])],
@@ -217,8 +224,11 @@ export default function Home() {
 
     } catch (error) {
       console.error("Error updating user progress: ", error);
-      fetchUserProgress(user.email);
-      fetchCommitActivity(user.email);
+      // Re-fetch to ensure UI consistency on error
+      if (user?.email) {
+        fetchUserProgress(user.email);
+        fetchCommitActivity(user.email);
+      }
     }
   }
 
@@ -231,7 +241,7 @@ export default function Home() {
       <Header user={user} onLogout={handleLogout} />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="container mx-auto">
-          <ProfileHeader user={user} />
+          <ProfileHeader user={user} imageUrl={userProgress.imageUrl} motto={userProgress.motto} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <div className='animate-fade-in-up' style={{animationDelay: '100ms'}}>
               <ProgressCard commitsMade={userProgress.commitsMade} />

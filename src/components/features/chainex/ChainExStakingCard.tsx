@@ -20,15 +20,8 @@ export function ChainExStakingCard() {
   const [stakeAmount, setStakeAmount] = useState('');
   
   const [stakeTxHash, setStakeTxHash] = useState<`0x${string}`>();
-  const { isLoading: isConfirmingStake } = useWaitForTransactionReceipt({ hash: stakeTxHash });
-
   const [withdrawTxHash, setWithdrawTxHash] = useState<`0x${string}`>();
-  const { isLoading: isConfirmingWithdraw } = useWaitForTransactionReceipt({ hash: withdrawTxHash });
-  
   const [approvalTxHash, setApprovalTxHash] = useState<`0x${string}`>();
-  const { isLoading: isConfirmingApproval } = useWaitForTransactionReceipt({ hash: approvalTxHash });
-  
-  const isLoading = isConfirmingStake || isConfirmingWithdraw || isConfirmingApproval;
 
   const { data: stakedBalance, isLoading: isBalanceLoading, refetch: refetchStakedBalance } = useReadContract({
     abi: chainExStakingABI,
@@ -46,12 +39,34 @@ export function ChainExStakingCard() {
     query: { enabled: !!address },
   });
 
+  const onTransactionSuccess = () => {
+    toast({ title: 'Success!', description: 'Your transaction was confirmed.' });
+    refetchStakedBalance();
+    refetchReward();
+  };
+
+  const { isLoading: isConfirmingStake } = useWaitForTransactionReceipt({ 
+    hash: stakeTxHash,
+    onSuccess: onTransactionSuccess,
+  });
+
+  const { isLoading: isConfirmingWithdraw } = useWaitForTransactionReceipt({ 
+    hash: withdrawTxHash,
+    onSuccess: onTransactionSuccess,
+  });
+  
+  const { isLoading: isConfirmingApproval } = useWaitForTransactionReceipt({ 
+    hash: approvalTxHash,
+    onSuccess: () => toast({ title: 'Approval Confirmed', description: 'You can now complete your transaction.' }),
+  });
+  
+  const isLoading = isConfirmingStake || isConfirmingWithdraw || isConfirmingApproval;
+
   const handleStake = async () => {
     if (!stakeAmount || !address) return;
     try {
       const amount = parseEther(stakeAmount);
       
-      // 1. Approve Staking contract to spend tokens
       const approvalHash = await writeContractAsync({
         abi: chainExTokenABI,
         address: chainExTokenAddress,
@@ -61,7 +76,6 @@ export function ChainExStakingCard() {
       setApprovalTxHash(approvalHash);
       toast({ title: 'Approval Sent', description: 'Waiting for approval confirmation...' });
       
-      // 2. Stake tokens
       const stakeHash = await writeContractAsync({
         abi: chainExStakingABI,
         address: chainExStakingAddress,
@@ -117,7 +131,7 @@ export function ChainExStakingCard() {
                 disabled={isLoading}
                 />
                 <Button onClick={handleStake} disabled={isLoading || !stakeAmount}>
-                    {isLoading ? <Loader2 className="animate-spin" /> : "Stake"}
+                    {isLoading && !isConfirmingWithdraw ? <Loader2 className="animate-spin" /> : "Stake"}
                 </Button>
             </div>
         </div>

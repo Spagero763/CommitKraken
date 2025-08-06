@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -52,7 +52,7 @@ export function ChainExDEXCard() {
     functionName: 'rate',
   });
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (isApprovalSuccess && actionState === 'approving') {
         handleSellTokens();
     }

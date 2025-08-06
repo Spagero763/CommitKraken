@@ -2,27 +2,32 @@
 
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 import { Button } from '@/components/ui/button';
 
 export function ThemeToggle() {
-  const [theme, setThemeState] = React.useState<'theme-light' | 'dark' | 'system'>('system');
+  const [mounted, setMounted] = React.useState(false);
+  // The theme is initialized to 'dark' in the RootLayout, so we can use that as the default.
+  const [theme, setTheme] = React.useState<'dark' | 'light'>('dark');
 
   React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setThemeState(isDarkMode ? 'dark' : 'theme-light');
+    setMounted(true);
+    const root = window.document.documentElement;
+    const initialTheme = root.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(initialTheme);
   }, []);
 
-  React.useEffect(() => {
-    const isDark =
-      theme === 'dark' ||
-      (theme === 'system' &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches);
-    document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
-  }, [theme]);
-
   const toggleTheme = () => {
-    setThemeState(prevTheme => prevTheme === 'dark' ? 'theme-light' : 'dark');
+    const root = window.document.documentElement;
+    root.classList.remove(theme);
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    root.classList.add(newTheme);
+    setTheme(newTheme);
+  };
+
+  if (!mounted) {
+    return <Button variant="outline" size="icon" disabled={true} />;
   }
 
   return (

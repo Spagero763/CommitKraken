@@ -10,6 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Repeat } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { chainExDEXABI, chainExDEXAddress, chainExTokenABI, chainExTokenAddress } from '@/lib/contracts';
+import { Skeleton } from '@/components/ui/skeleton';
+
+type ActionState = 'idle' | 'buying' | 'approving' | 'selling';
 
 export function ChainExDEXCard() {
   const { address } = useAccount();
@@ -18,24 +21,46 @@ export function ChainExDEXCard() {
 
   const [buyAmount, setBuyAmount] = useState('');
   const [sellAmount, setSellAmount] = useState('');
+  const [actionState, setActionState] = useState<ActionState>('idle');
   
   const [buyTxHash, setBuyTxHash] = useState<`0x${string}`>();
-  const { isLoading: isConfirmingBuy } = useWaitForTransactionReceipt({ hash: buyTxHash });
-
   const [sellTxHash, setSellTxHash] = useState<`0x${string}`>();
-  const { isLoading: isConfirmingSell } = useWaitForTransactionReceipt({ hash: sellTxHash });
-  
   const [approvalTxHash, setApprovalTxHash] = useState<`0x${string}`>();
-  const { isLoading: isConfirmingApproval } = useWaitForTransactionReceipt({ hash: approvalTxHash });
+
+  const onTransactionSuccess = (message: string) => {
+    toast({ title: 'Success!', description: message });
+    setActionState('idle');
+  };
+
+  const { isLoading: isConfirmingBuy } = useWaitForTransactionReceipt({ 
+    hash: buyTxHash,
+    onSuccess: () => onTransactionSuccess('Successfully bought CEX tokens.'),
+  });
+
+  const { isLoading: isConfirmingSell } = useWaitForTransactionReceipt({ 
+    hash: sellTxHash,
+    onSuccess: () => onTransactionSuccess('Successfully sold CEX tokens.'),
+  });
+  
+  const { isSuccess: isApprovalSuccess, isLoading: isConfirmingApproval } = useWaitForTransactionReceipt({ 
+    hash: approvalTxHash,
+  });
 
   const { data: rate, isLoading: isRateLoading } = useReadContract({
     abi: chainExDEXABI,
     address: chainExDEXAddress,
     functionName: 'rate',
   });
+  
+  React.useEffect(() => {
+    if (isApprovalSuccess && actionState === 'approving') {
+        handleSellTokens();
+    }
+  }, [isApprovalSuccess, actionState]);
 
   const handleBuy = async () => {
     if (!buyAmount) return;
+    setActionState('buying');
     try {
       const value = parseEther(buyAmount);
       const hash = await writeContractAsync({
@@ -50,45 +75,67 @@ export function ChainExDEXCard() {
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to buy tokens.' });
+      setActionState('idle');
     }
   };
 
-  const handleSell = async () => {
+  const handleApproveAndSell = async () => {
     if (!sellAmount || !address) return;
+    setActionState('approving');
     try {
-      const amount = parseEther(sellAmount);
-
-      // 1. Approve DEX to spend tokens
-      const approvalHash = await writeContractAsync({
-        abi: chainExTokenABI,
-        address: chainExTokenAddress,
-        functionName: 'approve',
-        args: [chainExDEXAddress, amount],
-      });
-      setApprovalTxHash(approvalHash);
-      toast({ title: 'Approval Sent', description: 'Waiting for approval confirmation...' });
-      
-      // We will wait for approval before selling in a real app,
-      // but for this simple UI we just fire and forget for now.
-      // A better implementation would use the `isSuccess` from `useWaitForTransactionReceipt`.
-
-      // 2. Sell tokens
-      const sellHash = await writeContractAsync({
-        abi: chainExDEXABI,
-        address: chainExDEXAddress,
-        functionName: 'sellTokens',
-        args: [amount],
-      });
-      setSellTxHash(sellHash);
-      toast({ title: 'Transaction Sent', description: 'Selling CEX tokens...' });
-      setSellAmount('');
+        const amount = parseEther(sellAmount);
+        const approvalHash = await writeContractAsync({
+            abi: chainExTokenABI,
+            address: chainExTokenAddress,
+            functionName: 'approve',
+            args: [chainExDEXAddress, amount],
+        });
+        setApprovalTxHash(approvalHash);
+        toast({ title: 'Approval Sent', description: 'Waiting for approval confirmation...' });
     } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to sell tokens.' });
+        console.error(error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to send approval.' });
+        setActionState('idle');
+    }
+  };
+
+  const handleSellTokens = async () => {
+    if (!sellAmount || !address) return;
+    setActionState('selling');
+    try {
+        const amount = parseEther(sellAmount);
+        const sellHash = await writeContractAsync({
+            abi: chainExDEXABI,
+            address: chainExDEXAddress,
+            functionName: 'sellTokens',
+            args: [amount],
+        });
+        setSellTxHash(sellHash);
+        toast({ title: 'Transaction Sent', description: 'Selling CEX tokens...' });
+        setSellAmount('');
+    } catch (error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to sell tokens.' });
+        setActionState('idle');
     }
   };
   
   const isLoading = isConfirmingBuy || isConfirmingSell || isConfirmingApproval;
+
+  const getButtonText = (type: 'buy' | 'sell') => {
+    if (type === 'buy') {
+        if (isConfirmingBuy) return 'Buying...';
+        return 'Buy';
+    }
+    if (type === 'sell') {
+        if (actionState === 'approving') return 'Approving...';
+        if (isConfirmingApproval) return 'Approving...';
+        if (actionState === 'selling') return 'Selling...';
+        if (isConfirmingSell) return 'Selling...';
+        return 'Sell';
+    }
+    return '...';
+  }
 
   return (
     <Card>
@@ -98,7 +145,7 @@ export function ChainExDEXCard() {
           <CardTitle>Decentralized Exchange</CardTitle>
         </div>
         <CardDescription>
-          Buy or sell CEX tokens directly. Rate: 1 ETH = {rate?.toString() ?? '...'} CEX
+          Buy or sell CEX tokens directly. Rate: 1 ETH = {isRateLoading ? <Skeleton className="h-5 w-12 inline-block" /> : rate?.toString() ?? '...'} CEX
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -115,7 +162,7 @@ export function ChainExDEXCard() {
             />
             <Button onClick={handleBuy} disabled={isLoading || !buyAmount}>
               {isLoading && <Loader2 className="animate-spin" />}
-              Buy
+              {getButtonText('buy')}
             </Button>
           </div>
            <p className="text-xs text-muted-foreground">Amount in ETH</p>
@@ -131,9 +178,9 @@ export function ChainExDEXCard() {
               onChange={(e) => setSellAmount(e.target.value)}
               disabled={isLoading}
             />
-            <Button onClick={handleSell} disabled={isLoading || !sellAmount} variant="secondary">
+            <Button onClick={handleApproveAndSell} disabled={isLoading || !sellAmount} variant="secondary">
               {isLoading && <Loader2 className="animate-spin" />}
-              Sell
+              {getButtonText('sell')}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">Amount in CEX</p>

@@ -15,7 +15,16 @@ export function ChainExMembershipCard() {
   const { writeContractAsync } = useWriteContract();
   
   const [txHash, setTxHash] = useState<`0x${string}`>();
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const onTransactionSuccess = () => {
+    toast({ title: 'Success!', description: 'Your Membership NFT has been minted.' });
+    refetchName();
+  };
+
+  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ 
+    hash: txHash,
+    onSuccess: onTransactionSuccess,
+  });
 
   const { data: mintPrice, isLoading: isPriceLoading } = useReadContract({
     abi: chainExMembershipABI,
@@ -23,7 +32,7 @@ export function ChainExMembershipCard() {
     functionName: 'mintPrice',
   });
 
-  const { data: name, isLoading: isNameLoading } = useReadContract({
+  const { data: name, isLoading: isNameLoading, refetch: refetchName } = useReadContract({
     abi: chainExMembershipABI,
     address: chainExMembershipAddress,
     functionName: 'name',
@@ -36,7 +45,7 @@ export function ChainExMembershipCard() {
         abi: chainExMembershipABI,
         address: chainExMembershipAddress,
         functionName: 'mint',
-        args: ['ipfs://your-metadata-uri-here'], // Placeholder URI
+        args: ['ipfs://bafkreid4xv37fvexfwagesff2liredycpk2c7ilisx2r5isj6wnpqvih3u'],
         value: mintPrice,
       });
       setTxHash(hash);

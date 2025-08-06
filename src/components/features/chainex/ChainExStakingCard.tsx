@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -12,13 +12,16 @@ import { useToast } from '@/hooks/use-toast';
 import { chainExStakingABI, chainExStakingAddress, chainExTokenABI, chainExTokenAddress } from '@/lib/contracts';
 import { Skeleton } from '@/components/ui/skeleton';
 
+type ActionState = 'idle' | 'approving' | 'staking' | 'withdrawing';
+
 export function ChainExStakingCard() {
   const { address } = useAccount();
   const { toast } = useToast();
   const { writeContractAsync } = useWriteContract();
 
   const [stakeAmount, setStakeAmount] = useState('');
-  
+  const [actionState, setActionState] = useState<ActionState>('idle');
+
   const [stakeTxHash, setStakeTxHash] = useState<`0x${string}`>();
   const [withdrawTxHash, setWithdrawTxHash] = useState<`0x${string}`>();
   const [approvalTxHash, setApprovalTxHash] = useState<`0x${string}`>();
@@ -28,7 +31,7 @@ export function ChainExStakingCard() {
     address: chainExStakingAddress,
     functionName: 'balances',
     args: [address!],
-    query: { enabled: !!address },
+    query: { enabled: !!address, refetchInterval: 5000 },
   });
 
   const { data: reward, isLoading: isRewardLoading, refetch: refetchReward } = useReadContract({
@@ -36,37 +39,42 @@ export function ChainExStakingCard() {
     address: chainExStakingAddress,
     functionName: 'calculateReward',
     args: [address!],
-    query: { enabled: !!address },
+    query: { enabled: !!address, refetchInterval: 5000 },
   });
 
-  const onTransactionSuccess = () => {
-    toast({ title: 'Success!', description: 'Your transaction was confirmed.' });
+  const onTransactionSuccess = (message: string) => {
+    toast({ title: 'Success!', description: message });
     refetchStakedBalance();
     refetchReward();
+    setActionState('idle');
   };
 
   const { isLoading: isConfirmingStake } = useWaitForTransactionReceipt({ 
     hash: stakeTxHash,
-    onSuccess: onTransactionSuccess,
+    onSuccess: () => onTransactionSuccess('Your tokens have been staked.'),
   });
 
   const { isLoading: isConfirmingWithdraw } = useWaitForTransactionReceipt({ 
     hash: withdrawTxHash,
-    onSuccess: onTransactionSuccess,
+    onSuccess: () => onTransactionSuccess('Your stake and rewards have been withdrawn.'),
   });
   
-  const { isLoading: isConfirmingApproval } = useWaitForTransactionReceipt({ 
+  const { isSuccess: isApprovalSuccess, isLoading: isConfirmingApproval } = useWaitForTransactionReceipt({ 
     hash: approvalTxHash,
-    onSuccess: () => toast({ title: 'Approval Confirmed', description: 'You can now complete your transaction.' }),
   });
-  
-  const isLoading = isConfirmingStake || isConfirmingWithdraw || isConfirmingApproval;
 
-  const handleStake = async () => {
+  React.useEffect(() => {
+    if (isApprovalSuccess && actionState === 'approving') {
+        toast({ title: 'Approval Confirmed', description: 'You can now complete your transaction.' });
+        handleStakeTokens();
+    }
+  }, [isApprovalSuccess, actionState]);
+
+  const handleApproveAndStake = async () => {
     if (!stakeAmount || !address) return;
+    setActionState('approving');
     try {
       const amount = parseEther(stakeAmount);
-      
       const approvalHash = await writeContractAsync({
         abi: chainExTokenABI,
         address: chainExTokenAddress,
@@ -75,24 +83,37 @@ export function ChainExStakingCard() {
       });
       setApprovalTxHash(approvalHash);
       toast({ title: 'Approval Sent', description: 'Waiting for approval confirmation...' });
-      
-      const stakeHash = await writeContractAsync({
-        abi: chainExStakingABI,
-        address: chainExStakingAddress,
-        functionName: 'stake',
-        args: [amount],
-      });
-      setStakeTxHash(stakeHash);
-      toast({ title: 'Transaction Sent', description: 'Staking CEX tokens...' });
-      setStakeAmount('');
+    } catch(error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to send approval.' });
+        setActionState('idle');
+    }
+  };
+  
+  const handleStakeTokens = async () => {
+    if (!stakeAmount || !address) return;
+    setActionState('staking');
+    try {
+        const amount = parseEther(stakeAmount);
+        const stakeHash = await writeContractAsync({
+            abi: chainExStakingABI,
+            address: chainExStakingAddress,
+            functionName: 'stake',
+            args: [amount],
+        });
+        setStakeTxHash(stakeHash);
+        toast({ title: 'Transaction Sent', description: 'Staking CEX tokens...' });
+        setStakeAmount('');
     } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to stake tokens.' });
+        console.error(error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to stake tokens.' });
+        setActionState('idle');
     }
   };
 
   const handleWithdraw = async () => {
     if (!stakedBalance || stakedBalance === 0n) return;
+    setActionState('withdrawing');
     try {
       const hash = await writeContractAsync({
         abi: chainExStakingABI,
@@ -104,8 +125,11 @@ export function ChainExStakingCard() {
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to withdraw.' });
+      setActionState('idle');
     }
   };
+
+  const isLoading = isConfirmingStake || isConfirmingWithdraw || isConfirmingApproval;
 
   return (
     <Card>
@@ -130,8 +154,9 @@ export function ChainExStakingCard() {
                 onChange={(e) => setStakeAmount(e.target.value)}
                 disabled={isLoading}
                 />
-                <Button onClick={handleStake} disabled={isLoading || !stakeAmount}>
-                    {isLoading && !isConfirmingWithdraw ? <Loader2 className="animate-spin" /> : "Stake"}
+                <Button onClick={handleApproveAndStake} disabled={isLoading || !stakeAmount}>
+                    {isLoading && <Loader2 className="animate-spin" />}
+                    {actionState === 'approving' || isConfirmingApproval ? 'Approving...' : actionState === 'staking' || isConfirmingStake ? 'Staking...' : 'Stake'}
                 </Button>
             </div>
         </div>
@@ -139,13 +164,13 @@ export function ChainExStakingCard() {
             <div className="text-center">
                 <p className="text-sm text-muted-foreground">Your Stake</p>
                 {isBalanceLoading ? <Skeleton className="h-7 w-24 mt-1" /> : (
-                    <p className="text-2xl font-bold font-headline">{stakedBalance ? formatEther(stakedBalance) : '0'}</p>
+                    <p className="text-2xl font-bold font-headline">{stakedBalance ? parseFloat(formatEther(stakedBalance)).toFixed(4) : '0'}</p>
                 )}
             </div>
             <div className="text-center">
                 <p className="text-sm text-muted-foreground">Your Rewards</p>
                 {isRewardLoading ? <Skeleton className="h-7 w-24 mt-1" /> : (
-                    <p className="text-2xl font-bold font-headline">{reward ? formatEther(reward) : '0'}</p>
+                    <p className="text-2xl font-bold font-headline">{reward ? parseFloat(formatEther(reward)).toFixed(4) : '0'}</p>
                 )}
             </div>
         </div>

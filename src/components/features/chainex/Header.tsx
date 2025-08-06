@@ -2,7 +2,7 @@
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Waves } from 'lucide-react';
-import { ThemeToggle } from '../commit-kraken/ThemeToggle';
+import { ThemeToggle } from './ThemeToggle';
 import { useAccount } from 'wagmi';
 
 export function Header() {

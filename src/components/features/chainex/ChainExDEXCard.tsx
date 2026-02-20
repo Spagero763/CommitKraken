@@ -28,7 +28,7 @@ export function ChainExDEXCard() {
   const [approvalTxHash, setApprovalTxHash] = useState<`0x${string}`>();
 
   const onTransactionSuccess = (message: string) => {
-    toast({ title: 'Success!', description: message });
+    toast({ title: 'Transaction Complete', description: message });
     setActionState('idle');
   };
 
